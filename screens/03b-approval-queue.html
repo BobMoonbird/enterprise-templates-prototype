@@ -1,0 +1,232 @@
+<!--
+PROTOTYPE SCREEN: 03b — Approve a pending internal template
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, SettingsLayout, ApprovalQueue, Button, Toast, TemplateCard (status)
+JOURNEY BEAT: Pending → Approve / Reject / Request changes → Golden
+MIRO (Frame 4): admin key view = existing templates + pending; owner/contributors/desc
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>03b · Approve a pending internal template</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item is-active" href="03b-approval-queue.html"><span class="nav-item__icon">⚙</span> Settings</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Template approvals</strong>
+        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Admin</span></span>
+      </header>
+      <div class="app-shell__content">
+        <div data-block="SettingsLayout">
+          <nav class="settings-nav">
+            <div class="settings-nav__title">Governance</div>
+            <a class="settings-nav-item" href="00-security-allowlist.html">Node allowlist</a>
+            <a class="settings-nav-item" href="01-admin-roles.html">Roles</a>
+            <a class="settings-nav-item" href="01b-library-enable.html">Company library</a>
+            <a class="settings-nav-item is-active" href="03b-approval-queue.html">Template approvals</a>
+          </nav>
+          <section class="settings-panel" data-block="ApprovalQueue">
+            <div class="settings-panel__header">
+              <h2>Admin library ops</h2>
+              <p>
+                Key admin views: <strong>existing templates</strong> and
+                <strong>items pending approval</strong>. Approve promotes to Golden in the
+                company library. Reject returns to Draft. Request changes keeps Pending.
+              </p>
+            </div>
+
+            <div class="lib-inventory-grid" id="inventory-stats"></div>
+
+            <div class="tabs">
+              <button type="button" class="tab is-active" data-tab="pending">Pending approvals</button>
+              <button type="button" class="tab" data-tab="library">Existing templates</button>
+            </div>
+            <div class="queue-list" id="queue-list"></div>
+            <div style="margin-top:24px" class="flex gap-3">
+              <a class="btn btn--primary" id="next-member" href="05-create-empty.html?role=member">
+                Next: Create as Member →
+              </a>
+              <a class="btn btn--ghost" href="06-company-library.html">Open unified library</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20260929164000"></script>
+  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script>
+    (function () {
+      if (ProtoState.get().role === "builder" || ProtoState.get().role === "member") {
+        ProtoState.setRole("admin");
+        const sel = document.querySelector(".role-switcher__select");
+        if (sel) sel.value = "admin";
+        ProtoUI.applyRoleChrome();
+      }
+
+      let tab = "pending";
+
+      function ownershipLine(t) {
+        const owner = t.owner || t.author || "—";
+        const contribs = (t.contributors || []).filter(function (c) {
+          return c && c !== owner;
+        });
+        return (
+          "Owner: " +
+          owner +
+          (contribs.length ? " · Contributors: " + contribs.join(", ") : "")
+        );
+      }
+
+      function renderStats() {
+        const all = ProtoState.get().templates;
+        const golden = all.filter(function (t) {
+          return t.status === "golden";
+        }).length;
+        const pending = all.filter(function (t) {
+          return t.status === "pending";
+        }).length;
+        const draft = all.filter(function (t) {
+          return t.status === "draft";
+        }).length;
+        document.getElementById("inventory-stats").innerHTML =
+          '<div class="lib-inventory-stat"><div class="lib-inventory-stat__n">' +
+          golden +
+          '</div><div class="lib-inventory-stat__l">Golden templates</div></div>' +
+          '<div class="lib-inventory-stat"><div class="lib-inventory-stat__n">' +
+          pending +
+          '</div><div class="lib-inventory-stat__l">Pending approvals</div></div>' +
+          '<div class="lib-inventory-stat"><div class="lib-inventory-stat__n">' +
+          draft +
+          '</div><div class="lib-inventory-stat__l">Builder drafts</div></div>';
+      }
+
+      function render() {
+        renderStats();
+        const list = document.getElementById("queue-list");
+        if (tab === "pending") {
+          const pending = ProtoState.getPending();
+          if (!pending.length) {
+            list.innerHTML =
+              '<p class="secondary">Queue clear — all submissions reviewed. Continue to Member create.</p>';
+            return;
+          }
+          list.innerHTML = pending
+            .map(function (t) {
+              const groups = (t.targetGroups || []).length
+                ? '<div class="queue-row__meta lib-future-hint">Recommended for: ' +
+                  t.targetGroups.join(", ") +
+                  " (future)</div>"
+                : "";
+              return (
+                '<div class="queue-row is-clickable">' +
+                "<div>" +
+                '<div class="queue-row__title">' +
+                t.name +
+                " " +
+                ProtoUI.statusBadge("pending") +
+                "</div>" +
+                '<div class="queue-row__meta">' +
+                ownershipLine(t) +
+                " · submitted " +
+                (t.submittedAt || t.updated) +
+                "</div>" +
+                '<div class="queue-row__meta">' +
+                (t.description || "") +
+                "</div>" +
+                '<div class="queue-row__meta">' +
+                (t.nodes || []).join(", ") +
+                "</div>" +
+                groups +
+                (t.submitNote
+                  ? '<div class="queue-row__note">“' + t.submitNote + '”</div>'
+                  : "") +
+                "</div>" +
+                '<div class="queue-row__actions">' +
+                '<button type="button" class="btn btn--success btn--sm" data-approve="' +
+                t.id +
+                '">Approve golden</button>' +
+                '<button type="button" class="btn btn--secondary btn--sm" data-request-changes="' +
+                t.id +
+                '">Request changes</button>' +
+                '<button type="button" class="btn btn--danger btn--sm" data-reject="' +
+                t.id +
+                '">Reject</button>' +
+                "</div></div>"
+              );
+            })
+            .join("");
+        } else {
+          const existing = ProtoState.get().templates.filter(function (t) {
+            return t.status === "golden" || t.status === "archived";
+          });
+          if (!existing.length) {
+            list.innerHTML = '<p class="secondary">No published templates yet.</p>';
+            return;
+          }
+          list.innerHTML = existing
+            .map(function (t) {
+              return (
+                '<div class="queue-row is-clickable">' +
+                "<div><div class=\"queue-row__title\">" +
+                t.name +
+                " " +
+                ProtoUI.statusBadge(t.status) +
+                '</div><div class="queue-row__meta">' +
+                ownershipLine(t) +
+                " · " +
+                t.category +
+                " · v" +
+                t.version +
+                '</div><div class="queue-row__meta">' +
+                (t.description || "") +
+                "</div></div>" +
+                '<div class="queue-row__actions">' +
+                '<a class="btn btn--secondary btn--sm" href="06-company-library.html">View in library</a>' +
+                "</div></div>"
+              );
+            })
+            .join("");
+        }
+      }
+
+      document.querySelectorAll("[data-tab]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          tab = btn.getAttribute("data-tab");
+          document.querySelectorAll("[data-tab]").forEach(function (b) {
+            b.classList.toggle("is-active", b === btn);
+          });
+          render();
+        });
+      });
+
+      document.getElementById("next-member").addEventListener("click", function () {
+        ProtoState.setRole("member");
+      });
+
+      document.addEventListener("proto:rerender", render);
+      render();
+    })();
+  </script>
+</body>
+</html>

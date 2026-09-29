@@ -1,0 +1,126 @@
+<!--
+PROTOTYPE SCREEN: 01 — Assign who can create vs copy templates
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, SettingsLayout, RolesPanel, Button, Toast
+JOURNEY BEAT: Admin assigns create-vs-copy — NOT an upgrade paywall
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>01 · Assign who can create vs copy templates</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item is-active" href="01-admin-roles.html"><span class="nav-item__icon">⚙</span> Settings</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Settings · Roles</strong>
+        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Admin</span></span>
+      </header>
+      <div class="app-shell__content">
+        <div data-block="SettingsLayout">
+          <nav class="settings-nav">
+            <div class="settings-nav__title">Governance</div>
+            <a class="settings-nav-item" href="00-security-allowlist.html">Node allowlist</a>
+            <a class="settings-nav-item is-active" href="01-admin-roles.html">Roles</a>
+            <a class="settings-nav-item" href="01b-library-enable.html">Company library</a>
+            <a class="settings-nav-item" href="03b-approval-queue.html">Template approvals</a>
+          </nav>
+          <section class="settings-panel" data-block="RolesPanel">
+            <div class="settings-panel__header">
+              <h2>Workflow roles</h2>
+              <p>
+                First-class create vs copy — some people invent workflows; others only
+                start from company templates. This is RBAC, not a paywall upgrade CTA.
+              </p>
+            </div>
+            <h3 style="margin-bottom:12px;font-size:15px">People</h3>
+            <table class="people-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Team</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+              <tbody id="people-body"></tbody>
+            </table>
+            <div style="margin-top:24px">
+              <a class="btn btn--primary" href="01b-library-enable.html">Next: Turn on the company template library →</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20260929164000"></script>
+  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script>
+    (function () {
+      function render() {
+        document.getElementById("people-body").innerHTML = ProtoState.get()
+          .people.map(function (p) {
+            const opts = Object.keys(ProtoState.ROLES)
+              .map(function (id) {
+                return (
+                  '<option value="' +
+                  id +
+                  '"' +
+                  (p.role === id ? " selected" : "") +
+                  ">" +
+                  ProtoState.ROLES[id].label +
+                  "</option>"
+                );
+              })
+              .join("");
+            return (
+              '<tr class="is-clickable">' +
+              "<td><strong>" +
+              p.name +
+              '</strong><div class="muted" style="font-size:11px">' +
+              p.email +
+              "</div></td>" +
+              "<td>" +
+              p.team +
+              "</td>" +
+              '<td><select class="role-select" data-person="' +
+              p.id +
+              '">' +
+              opts +
+              "</select></td></tr>"
+            );
+          })
+          .join("");
+      }
+
+      document.getElementById("people-body").addEventListener("change", function (e) {
+        const sel = e.target.closest("[data-person]");
+        if (!sel) return;
+        ProtoState.setPersonRole(sel.getAttribute("data-person"), sel.value);
+        ProtoUI.toast("Updated role → " + ProtoState.ROLES[sel.value].label, "success");
+      });
+
+      document.addEventListener("proto:rerender", render);
+      render();
+    })();
+  </script>
+</body>
+</html>

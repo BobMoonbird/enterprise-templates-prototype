@@ -1,0 +1,328 @@
+<!--
+PROTOTYPE SCREEN: 00 — Set approved capabilities for the instance
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, SettingsLayout, AllowlistPanel, Button, Modal, Toast
+JOURNEY BEAT: Security defines approved tools + HTTP domains (hard rail) before builders create
+MIRO: Capability allow-list = tools to integrate with + domains for HTTP (not raw nodes);
+      prompt-driven bulk setup from tech stack description
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>00 · Set approved capabilities for the instance</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item is-active" href="00-security-allowlist.html"><span class="nav-item__icon">⚙</span> Settings</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Settings</strong>
+        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Security</span></span>
+      </header>
+      <div class="app-shell__content">
+        <div data-block="SettingsLayout">
+          <nav class="settings-nav">
+            <div class="settings-nav__title">Security</div>
+            <a class="settings-nav-item is-active" href="00-security-allowlist.html">Capability allowlist</a>
+            <a class="settings-nav-item" href="01-admin-roles.html">Roles</a>
+            <a class="settings-nav-item" href="01b-library-enable.html">Company library</a>
+            <a class="settings-nav-item" href="03b-approval-queue.html">Template approvals</a>
+          </nav>
+          <section class="settings-panel" data-block="AllowlistPanel">
+            <div class="settings-panel__header">
+              <h2>Capability allowlist</h2>
+              <p>
+                Prefer an allow-list of <strong>tools to integrate with</strong> and
+                <strong>domains for HTTP Request</strong> — not every n8n node.
+                Enforced across UI, API, and MCP.
+              </p>
+            </div>
+
+            <div class="cap-setup" data-block="StackPromptSetup">
+              <div class="cap-setup__header">
+                <h3>Prompt-driven setup</h3>
+                <p class="secondary">
+                  Describe your tech stack — we’ll suggest tools and HTTP domains to allow in bulk.
+                </p>
+              </div>
+              <textarea
+                id="stack-prompt"
+                class="cap-setup__textarea"
+                rows="3"
+                placeholder="e.g. We use NetSuite, Salesforce, Slack, Snowflake, and Okta. HTTP only to *.acme.co and api.netsuite.com"
+              >We use NetSuite, Salesforce, Slack, Snowflake, and Okta. HTTP only to *.acme.co and api.netsuite.com.</textarea>
+              <div class="cap-setup__actions">
+                <button type="button" class="btn btn--primary btn--sm" id="btn-suggest-stack">
+                  Suggest allowlist
+                </button>
+                <button type="button" class="btn btn--secondary btn--sm" id="btn-apply-stack" disabled>
+                  Allow suggested
+                </button>
+              </div>
+              <div class="cap-setup__result" id="stack-result" hidden></div>
+            </div>
+
+            <div class="allowlist-tabs" role="tablist">
+              <button type="button" class="allowlist-tab is-active is-clickable" data-tab="tools" role="tab" aria-selected="true">
+                Tools / integrations
+              </button>
+              <button type="button" class="allowlist-tab is-clickable" data-tab="domains" role="tab" aria-selected="false">
+                HTTP domains
+              </button>
+            </div>
+
+            <div class="allowlist-pane" id="pane-tools" data-pane="tools">
+              <div class="allowlist-toolbar">
+                <input class="allowlist-search" type="search" id="allowlist-search" placeholder="Search tools…" />
+                <button type="button" class="btn btn--secondary btn--sm" id="btn-show-blocked">Blocked only</button>
+              </div>
+              <table class="allowlist-table">
+                <thead>
+                  <tr>
+                    <th>Tool</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="allowlist-body"></tbody>
+              </table>
+              <p class="allowlist-footnote secondary">
+                Core workflow primitives (Webhook, IF, Code, Schedule) stay available —
+                they are not on this allowlist. Shell / FTP-style tools stay blocked by default.
+              </p>
+            </div>
+
+            <div class="allowlist-pane" id="pane-domains" data-pane="domains" hidden>
+              <div class="allowlist-toolbar">
+                <input class="allowlist-search" type="search" id="domain-search" placeholder="Search domains…" />
+                <button type="button" class="btn btn--secondary btn--sm" id="btn-show-blocked-domains">Blocked only</button>
+              </div>
+              <table class="allowlist-table">
+                <thead>
+                  <tr>
+                    <th>Domain pattern</th>
+                    <th>Note</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="domain-body"></tbody>
+              </table>
+              <p class="allowlist-footnote secondary">
+                HTTP Request nodes can only call allowlisted hosts. Same rail for builders, API, and MCP agents.
+              </p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20260929164000"></script>
+  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script>
+    (function () {
+      let blockedOnly = false;
+      let blockedDomainsOnly = false;
+      let lastSuggestion = null;
+
+      function renderTools() {
+        const q = (document.getElementById("allowlist-search").value || "").toLowerCase();
+        const nodes = ProtoState.get().nodes.filter(function (n) {
+          if (blockedOnly && n.allowed) return false;
+          if (!q) return true;
+          return (n.name + n.category + (n.kind || "")).toLowerCase().indexOf(q) >= 0;
+        });
+        document.getElementById("allowlist-body").innerHTML = nodes
+          .map(function (n) {
+            return (
+              '<tr class="is-clickable">' +
+              '<td><div class="node-name"><span class="node-icon">' +
+              n.icon +
+              "</span>" +
+              n.name +
+              (n.kind === "dangerous"
+                ? '<span class="cap-kind-chip">High risk</span>'
+                : "") +
+              "</div></td>" +
+              '<td class="secondary">' +
+              n.category +
+              "</td>" +
+              "<td>" +
+              (n.allowed
+                ? '<span class="badge badge--allowed">Allowed</span>'
+                : '<span class="badge badge--blocked">Blocked</span>') +
+              "</td>" +
+              '<td><button type="button" class="btn btn--sm ' +
+              (n.allowed ? "btn--danger" : "btn--success") +
+              '" data-toggle-node="' +
+              n.id +
+              '">' +
+              (n.allowed ? "Block" : "Allow") +
+              "</button></td>" +
+              "</tr>"
+            );
+          })
+          .join("");
+      }
+
+      function renderDomains() {
+        const q = (document.getElementById("domain-search").value || "").toLowerCase();
+        const domains = ProtoState.getDomains().filter(function (d) {
+          if (blockedDomainsOnly && d.allowed) return false;
+          if (!q) return true;
+          return (d.pattern + (d.note || "")).toLowerCase().indexOf(q) >= 0;
+        });
+        document.getElementById("domain-body").innerHTML = domains
+          .map(function (d) {
+            return (
+              '<tr class="is-clickable">' +
+              '<td><code class="domain-pattern">' +
+              d.pattern +
+              "</code></td>" +
+              '<td class="secondary">' +
+              (d.note || "") +
+              "</td>" +
+              "<td>" +
+              (d.allowed
+                ? '<span class="badge badge--allowed">Allowed</span>'
+                : '<span class="badge badge--blocked">Blocked</span>') +
+              "</td>" +
+              '<td><button type="button" class="btn btn--sm ' +
+              (d.allowed ? "btn--danger" : "btn--success") +
+              '" data-toggle-domain="' +
+              d.id +
+              '">' +
+              (d.allowed ? "Block" : "Allow") +
+              "</button></td>" +
+              "</tr>"
+            );
+          })
+          .join("");
+      }
+
+      function render() {
+        renderTools();
+        renderDomains();
+      }
+
+      document.querySelectorAll(".allowlist-tab").forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          const id = tab.getAttribute("data-tab");
+          document.querySelectorAll(".allowlist-tab").forEach(function (t) {
+            t.classList.toggle("is-active", t === tab);
+            t.setAttribute("aria-selected", t === tab ? "true" : "false");
+          });
+          document.querySelectorAll(".allowlist-pane").forEach(function (pane) {
+            pane.hidden = pane.getAttribute("data-pane") !== id;
+          });
+        });
+      });
+
+      document.getElementById("allowlist-body").addEventListener("click", function (e) {
+        const btn = e.target.closest("[data-toggle-node]");
+        if (!btn) return;
+        const node = ProtoState.toggleNodeAllowed(btn.getAttribute("data-toggle-node"));
+        ProtoUI.toast(
+          (node.allowed ? "Allowed: " : "Blocked: ") + node.name,
+          node.allowed ? "success" : "warning"
+        );
+        render();
+      });
+
+      document.getElementById("domain-body").addEventListener("click", function (e) {
+        const btn = e.target.closest("[data-toggle-domain]");
+        if (!btn) return;
+        const domain = ProtoState.toggleDomainAllowed(btn.getAttribute("data-toggle-domain"));
+        ProtoUI.toast(
+          (domain.allowed ? "Allowed: " : "Blocked: ") + domain.pattern,
+          domain.allowed ? "success" : "warning"
+        );
+        render();
+      });
+
+      document.getElementById("allowlist-search").addEventListener("input", renderTools);
+      document.getElementById("domain-search").addEventListener("input", renderDomains);
+
+      document.getElementById("btn-show-blocked").addEventListener("click", function () {
+        blockedOnly = !blockedOnly;
+        this.classList.toggle("btn--primary", blockedOnly);
+        this.classList.toggle("btn--secondary", !blockedOnly);
+        renderTools();
+      });
+
+      document.getElementById("btn-show-blocked-domains").addEventListener("click", function () {
+        blockedDomainsOnly = !blockedDomainsOnly;
+        this.classList.toggle("btn--primary", blockedDomainsOnly);
+        this.classList.toggle("btn--secondary", !blockedDomainsOnly);
+        renderDomains();
+      });
+
+      document.getElementById("btn-suggest-stack").addEventListener("click", function () {
+        const text = document.getElementById("stack-prompt").value;
+        lastSuggestion = ProtoState.suggestFromStackPrompt(text);
+        const box = document.getElementById("stack-result");
+        const applyBtn = document.getElementById("btn-apply-stack");
+        if (!lastSuggestion.caps.length && !lastSuggestion.domains.length) {
+          box.hidden = false;
+          box.innerHTML =
+            '<p class="secondary">No known tools matched — try naming NetSuite, Salesforce, Slack, Okta, etc.</p>';
+          applyBtn.disabled = true;
+          return;
+        }
+        const capChips = lastSuggestion.caps
+          .map(function (c) {
+            return '<span class="suggest-chip">' + c.icon + " " + c.name + "</span>";
+          })
+          .join("");
+        const domChips = lastSuggestion.domains
+          .map(function (d) {
+            return '<span class="suggest-chip suggest-chip--domain">' + d.pattern + "</span>";
+          })
+          .join("");
+        box.hidden = false;
+        box.innerHTML =
+          "<strong>Suggested allow</strong>" +
+          '<div class="suggest-row">' +
+          (capChips || '<span class="secondary">No tools</span>') +
+          "</div>" +
+          (domChips
+            ? '<div class="suggest-row" style="margin-top:8px">' + domChips + "</div>"
+            : "") +
+          '<p class="secondary" style="margin-top:8px;margin-bottom:0">SSH / Execute Command / FTP stay blocked.</p>';
+        applyBtn.disabled = false;
+        ProtoUI.toast("Suggested " + lastSuggestion.caps.length + " tools · " + lastSuggestion.domains.length + " domains", "success");
+      });
+
+      document.getElementById("btn-apply-stack").addEventListener("click", function () {
+        if (!lastSuggestion) return;
+        ProtoState.applyStackSuggestion(lastSuggestion);
+        ProtoUI.toast("Bulk-allowed suggested tools and domains", "success");
+        this.disabled = true;
+        render();
+      });
+
+      document.addEventListener("proto:rerender", render);
+      render();
+    })();
+  </script>
+</body>
+</html>

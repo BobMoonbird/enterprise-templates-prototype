@@ -1,0 +1,143 @@
+<!--
+PROTOTYPE: Enterprise templates v2 — demo map
+PURPOSE: Entry + screens grouped by role/job (Miro Frame 5)
+BLOCKS: ProtoChrome, Button
+JOURNEY: Start here → 00 allowlist (primary path; role advances along the path)
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enterprise templates · demo map</title>
+  <link rel="stylesheet" href="css/tokens.css?v=20260929154500" />
+  <link rel="stylesheet" href="css/base.css?v=20260929154500" />
+  <link rel="stylesheet" href="css/components.css?v=20260929154500" />
+  <link rel="stylesheet" href="css/screens.css?v=20260929154500" />
+</head>
+<body>
+  <main class="demo-map" data-block="AppShell">
+    <div class="demo-map__hero">
+      <h1>Enterprise template library</h1>
+      <p>
+        n8n case-study click-through: private/golden company library + hard rails
+        (capability allowlist, create-vs-copy). Screens below are grouped by
+        <strong>job / role</strong> — Security → Admin → Builder → Member.
+        Public gallery stays discovery; this demo is the internal system of record.
+      </p>
+      <div class="demo-map__hero-actions">
+        <a class="btn btn--primary" data-block="Button" href="screens/00-security-allowlist.html" id="btn-start">
+          Start primary path
+        </a>
+        <button type="button" class="btn btn--ghost" id="btn-reset" data-block="Button">
+          Reset demo data
+        </button>
+      </div>
+    </div>
+
+    <section class="demo-map__screens" aria-label="Screens by role">
+      <h2 class="demo-map__screens-title">Screens by job / role</h2>
+      <div class="demo-map-roles" id="screen-roles"></div>
+    </section>
+  </main>
+
+  <script src="js/state.js?v=20260929154500"></script>
+  <script src="js/interactions.js?v=20260929154500"></script>
+  <script>
+    (function () {
+      const primary = [
+        "00-security-allowlist.html",
+        "01-admin-roles.html",
+        "01b-library-enable.html",
+        "02-builder-editor.html",
+        "03-submit-as-template.html",
+        "03b-approval-queue.html",
+        "05-create-empty.html",
+        "06-company-library.html",
+        "08-result.html",
+      ];
+
+      const byRole = {};
+      ProtoState.DEMO_PATH.forEach(function (s) {
+        const r = s.role || "builder";
+        if (!byRole[r]) byRole[r] = [];
+        byRole[r].push(s);
+      });
+      Object.keys(byRole).forEach(function (r) {
+        byRole[r].sort(function (a, b) {
+          return (a.spur ? 1 : 0) - (b.spur ? 1 : 0);
+        });
+      });
+
+      function cardHtml(s) {
+        const isPrimary = primary.indexOf(s.file) >= 0;
+        return (
+          '<a class="demo-map-card is-clickable' +
+          (isPrimary ? " is-primary" : "") +
+          (s.spur ? " is-spur" : "") +
+          '" href="screens/' +
+          s.file +
+          '" data-set-role="' +
+          (s.role || "") +
+          '">' +
+          '<div class="demo-map-card__num">' +
+          s.id +
+          (s.spur ? " · spur" : "") +
+          "</div>" +
+          '<div class="demo-map-card__title">' +
+          s.title +
+          "</div>" +
+          (s.beat
+            ? '<div class="demo-map-card__beat">' + s.beat + "</div>"
+            : "") +
+          "</a>"
+        );
+      }
+
+      const sections = ProtoState.DEMO_MAP_SECTIONS || [];
+      document.getElementById("screen-roles").innerHTML = sections
+        .map(function (sec) {
+          const role = ProtoState.ROLES[sec.role] || {};
+          const screens = byRole[sec.role] || [];
+          return (
+            '<section class="demo-map-role" data-role-section="' +
+            sec.role +
+            '">' +
+            '<header class="demo-map-role__head">' +
+            '<div class="demo-map-role__label">' +
+            (role.label || sec.role) +
+            "</div>" +
+            '<p class="demo-map-role__job">' +
+            (sec.job || role.description || "") +
+            "</p>" +
+            "</header>" +
+            '<div class="demo-map-grid">' +
+            screens.map(cardHtml).join("") +
+            "</div>" +
+            "</section>"
+          );
+        })
+        .join("");
+
+      document.getElementById("screen-roles").addEventListener("click", function (e) {
+        const link = e.target.closest("[data-set-role]");
+        if (!link) return;
+        const roleId = link.getAttribute("data-set-role");
+        if (roleId) ProtoState.setRole(roleId);
+      });
+
+      document.getElementById("btn-start").addEventListener("click", function () {
+        ProtoState.setRole("security");
+      });
+
+      document.getElementById("btn-reset").addEventListener("click", function () {
+        ProtoState.reset();
+        ProtoState.setRole("security");
+        if (window.ProtoUI && ProtoUI.toast) {
+          ProtoUI.toast("Demo data reset", "success");
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

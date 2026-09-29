@@ -1,0 +1,154 @@
+<!--
+PROTOTYPE SCREEN: 01b — Turn on the company template library
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, SettingsLayout, LibraryEnableToggle, Button, Toast
+JOURNEY BEAT: Opt-in company library — public gallery remains separate discovery
+MIRO (Frame 4): enable setting is questionable; admin key views = templates + pending
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>01b · Turn on the company template library</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item is-active" href="01b-library-enable.html"><span class="nav-item__icon">⚙</span> Settings</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Settings · Private library</strong>
+        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Admin</span></span>
+      </header>
+      <div class="app-shell__content">
+        <div data-block="SettingsLayout">
+          <nav class="settings-nav">
+            <div class="settings-nav__title">Governance</div>
+            <a class="settings-nav-item" href="00-security-allowlist.html">Node allowlist</a>
+            <a class="settings-nav-item" href="01-admin-roles.html">Roles</a>
+            <a class="settings-nav-item is-active" href="01b-library-enable.html">Company library</a>
+            <a class="settings-nav-item" href="03b-approval-queue.html">Template approvals</a>
+          </nav>
+          <section class="settings-panel">
+            <div class="settings-panel__header">
+              <h2>Private / company template library</h2>
+              <p>
+                Enterprise SoR for golden workflows — browse, search, and copy org-approved
+                templates. Public community gallery stays separate discovery.
+              </p>
+            </div>
+
+            <div class="lib-callout" data-block="LibraryEnableToggle">
+              <span aria-hidden="true">⚠</span>
+              <div>
+                <strong>Enable toggle is under debate.</strong>
+                Feedback: a hard setting to “turn on” private library is questionable —
+                customers expect the SoR to exist. Demo defaults <em>on</em>; the switch below
+                is experimental hide/show only.
+              </div>
+            </div>
+
+            <div data-block="LibraryEnableToggle">
+              <div class="toggle-row">
+                <div class="toggle-row__text">
+                  <h3>Show private library in this instance</h3>
+                  <p>
+                    Recommended: leave on. When visible, builders submit for internal approval
+                    and everyone starts from company golden templates (not Trending AI public).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="toggle"
+                  id="library-toggle"
+                  data-toggle-library
+                  role="switch"
+                  aria-label="Show private company template library"
+                ></button>
+              </div>
+            </div>
+
+            <div class="lib-admin-keys">
+              <a class="lib-admin-key is-clickable" href="06-company-library.html">
+                <div class="lib-admin-key__label">Admin key view</div>
+                <h3>Existing templates</h3>
+                <p>Unified library — golden inventory for the org. Role filters apply.</p>
+              </a>
+              <a class="lib-admin-key is-clickable" href="03b-approval-queue.html">
+                <div class="lib-admin-key__label">Admin key view</div>
+                <h3>Items pending approval</h3>
+                <p>Certify pipeline: submit → review → promote to golden.</p>
+              </a>
+            </div>
+
+            <div class="enable-checklist">
+              <div class="enable-check">
+                <span class="enable-check__icon">✓</span>
+                <div>
+                  <strong>Separate from public gallery</strong>
+                  <p class="secondary">SEO / community discovery stays external. This is Acme’s SoR.</p>
+                </div>
+              </div>
+              <div class="enable-check">
+                <span class="enable-check__icon">✓</span>
+                <div>
+                  <strong>Owner + contributors on every template</strong>
+                  <p class="secondary">Pending and golden items carry ownership and descriptions.</p>
+                </div>
+              </div>
+              <div class="enable-check">
+                <span class="enable-check__icon">✓</span>
+                <div>
+                  <strong>One library, filtered by role</strong>
+                  <p class="secondary">Copy sees golden; builders see own WIP; admins see all + queue.</p>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:24px" class="flex gap-3">
+              <a class="btn btn--primary" href="02-builder-editor.html" id="next-builder">Next: Build a workflow under policy rails →</a>
+              <a class="btn btn--ghost" href="06-company-library.html">Open library</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20260929164000"></script>
+  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script>
+    (function () {
+      function sync() {
+        const on = ProtoState.get().libraryEnabled;
+        const t = document.getElementById("library-toggle");
+        t.classList.toggle("is-on", on);
+        t.setAttribute("aria-pressed", on ? "true" : "false");
+      }
+      document.getElementById("next-builder").addEventListener("click", function () {
+        if (!ProtoState.get().libraryEnabled) {
+          ProtoState.setLibraryEnabled(true);
+        }
+        ProtoState.setRole("builder");
+      });
+      document.addEventListener("proto:rerender", sync);
+      sync();
+    })();
+  </script>
+</body>
+</html>

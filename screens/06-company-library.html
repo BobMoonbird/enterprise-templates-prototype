@@ -1,0 +1,272 @@
+<!--
+PROTOTYPE SCREEN: 06 — Pick a golden template from the company library
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, GalleryToolbar, TemplateCard, Button, Toast
+JOURNEY BEAT: Internal SoR with Draft / Pending / Golden / Archived cards → Use → result
+MIRO (Frame 4): unified library filtered by role; owner/contributors; admin pending strip
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>06 · Pick a golden template from the company library</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item is-active" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item" href="05-create-empty.html"><span class="nav-item__icon">＋</span> Create</a>
+        <a class="nav-item" href="00-security-allowlist.html"><span class="nav-item__icon">⚙</span> Settings</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Company templates</strong>
+        <div class="flex gap-2">
+          <a class="btn btn--ghost btn--sm role-show-admin" href="03b-approval-queue.html" id="link-approvals">Approvals</a>
+          <a class="btn btn--ghost btn--sm" href="07-ai-assist.html">Try AI from approved templates</a>
+          <a class="btn btn--secondary btn--sm" href="09-mcp.html">Prefer golden via MCP</a>
+        </div>
+      </header>
+      <div class="app-shell__content">
+        <div class="page-header">
+          <h1>Acme private library</h1>
+          <p>
+            One unified template library for all roles — filtered by what you can see.
+            Not the public “Trending AI” community gallery.
+          </p>
+        </div>
+
+        <div class="lib-role-banner" id="role-banner"></div>
+
+        <div class="notice" id="lib-notice" hidden>
+          Private library is hidden for this instance (experimental toggle).
+          <a href="01b-library-enable.html" style="color:var(--accent);margin-left:8px">Settings →</a>
+        </div>
+
+        <div class="lib-pending-strip" id="pending-strip" hidden data-block="ApprovalQueue">
+          <div class="lib-pending-strip__head">
+            <h2>Pending approvals</h2>
+            <a class="btn btn--secondary btn--sm" href="03b-approval-queue.html">Review queue →</a>
+          </div>
+          <div class="lib-pending-list" id="pending-list"></div>
+        </div>
+
+        <div data-block="GalleryToolbar">
+          <input class="gallery-search" type="search" id="gallery-search" placeholder="Search company templates…" />
+          <button type="button" class="filter-chip is-active" data-filter="all">All visible</button>
+          <button type="button" class="filter-chip" data-filter="golden">Golden</button>
+          <button type="button" class="filter-chip" data-filter="pending" id="chip-pending">Pending</button>
+          <button type="button" class="filter-chip" data-filter="draft" id="chip-draft">Draft</button>
+          <button type="button" class="filter-chip" data-filter="archived" id="chip-archived">Archived</button>
+        </div>
+
+        <div class="template-grid" id="template-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20260929164000"></script>
+  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script>
+    (function () {
+      let filter = "all";
+
+      function roleCopy(role) {
+        if (role === "member") {
+          return "<strong>Member</strong> — you see approved (golden) templates only.";
+        }
+        if (role === "builder") {
+          return "<strong>Builder</strong> — golden templates plus your pending &amp; drafts.";
+        }
+        if (role === "admin") {
+          return "<strong>Admin</strong> — full inventory + pending approvals strip. Same library, wider filter.";
+        }
+        return "<strong>Security</strong> — full read of library inventory (allowlist is separate).";
+      }
+
+      function ownershipHtml(t) {
+        const owner = t.owner || t.author || "";
+        const contribs = (t.contributors || []).filter(function (c) {
+          return c && c !== owner;
+        });
+        return (
+          '<div class="template-card__ownership"><span>Owner: ' +
+          owner +
+          "</span>" +
+          (contribs.length
+            ? '<span class="template-card__contribs">· Contributors: ' +
+              contribs.join(", ") +
+              "</span>"
+            : "") +
+          "</div>"
+        );
+      }
+
+      function groupsHtml(t) {
+        const groups = (t.targetGroups || []).slice(0, 2);
+        if (!groups.length) return "";
+        return (
+          '<div class="template-card__groups">' +
+          groups
+            .map(function (g) {
+              return '<span class="lib-group-chip">' + g + "</span>";
+            })
+            .join("") +
+          "</div>"
+        );
+      }
+
+      function syncChips(role) {
+        const showPending = role === "admin" || role === "security" || role === "builder";
+        const showDraft = role === "admin" || role === "security" || role === "builder";
+        const showArchived = role === "admin" || role === "security";
+        document.getElementById("chip-pending").hidden = !showPending;
+        document.getElementById("chip-draft").hidden = !showDraft;
+        document.getElementById("chip-archived").hidden = !showArchived;
+        const approvals = document.getElementById("link-approvals");
+        if (approvals) approvals.hidden = !(role === "admin");
+      }
+
+      function renderPendingStrip(role) {
+        const strip = document.getElementById("pending-strip");
+        const list = document.getElementById("pending-list");
+        if (role !== "admin") {
+          strip.hidden = true;
+          return;
+        }
+        const pending = ProtoState.getPending();
+        if (!pending.length) {
+          strip.hidden = true;
+          return;
+        }
+        strip.hidden = false;
+        list.innerHTML = pending
+          .map(function (t) {
+            return (
+              '<div class="lib-pending-row is-clickable">' +
+              "<div><strong>" +
+              t.name +
+              "</strong> · Owner: " +
+              (t.owner || t.author) +
+              '<div class="secondary" style="font-size:12px;margin-top:2px">' +
+              (t.description || "").slice(0, 90) +
+              (t.description && t.description.length > 90 ? "…" : "") +
+              "</div></div>" +
+              '<button type="button" class="btn btn--success btn--sm" data-approve="' +
+              t.id +
+              '">Approve</button>' +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      function render() {
+        const role = ProtoState.get().role;
+        const enabled = ProtoState.get().libraryEnabled;
+        document.getElementById("lib-notice").hidden = enabled;
+        document.getElementById("role-banner").innerHTML = roleCopy(role);
+        syncChips(role);
+        renderPendingStrip(role);
+
+        const q = (document.getElementById("gallery-search").value || "").toLowerCase();
+        let list = ProtoState.templatesForRole(role).filter(function (t) {
+          if (filter !== "all" && t.status !== filter) return false;
+          if (!q) return true;
+          const hay =
+            t.name +
+            t.description +
+            t.category +
+            (t.owner || "") +
+            (t.contributors || []).join(" ");
+          return hay.toLowerCase().indexOf(q) >= 0;
+        });
+
+        const grid = document.getElementById("template-grid");
+        if (!list.length) {
+          grid.innerHTML =
+            '<p class="secondary">No templates match this role filter. Switch role in the demo bar or clear search.</p>';
+          return;
+        }
+
+        grid.innerHTML = list
+          .map(function (t) {
+            const canUse = t.status === "golden";
+            const nodes = (t.nodes || [])
+              .slice(0, 4)
+              .map(function (n) {
+                return '<span class="node-chip">' + n + "</span>";
+              })
+              .join("");
+            return (
+              '<article class="template-card is-clickable" data-block="TemplateCard" data-template-id="' +
+              t.id +
+              '">' +
+              '<div class="template-card__top">' +
+              '<span class="template-card__cat">' +
+              (t.category || "") +
+              "</span>" +
+              ProtoUI.statusBadge(t.status) +
+              "</div>" +
+              '<div class="template-card__name">' +
+              t.name +
+              "</div>" +
+              '<p class="template-card__desc">' +
+              t.description +
+              "</p>" +
+              ownershipHtml(t) +
+              groupsHtml(t) +
+              '<div class="template-card__nodes">' +
+              nodes +
+              "</div>" +
+              '<div class="template-card__footer">' +
+              "<span>v" +
+              t.version +
+              "</span>" +
+              "<span>" +
+              (t.uses || 0) +
+              " uses</span></div>" +
+              (canUse
+                ? '<button type="button" class="btn btn--primary btn--sm" data-use-template="' +
+                  t.id +
+                  '">Use template</button>'
+                : t.status === "pending" && role === "admin"
+                  ? '<a class="btn btn--secondary btn--sm" href="03b-approval-queue.html">Review</a>'
+                  : "") +
+              "</article>"
+            );
+          })
+          .join("");
+      }
+
+      document.querySelectorAll("[data-filter]").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          filter = chip.getAttribute("data-filter");
+          document.querySelectorAll("[data-filter]").forEach(function (c) {
+            c.classList.toggle("is-active", c === chip);
+          });
+          render();
+        });
+      });
+
+      document.getElementById("gallery-search").addEventListener("input", render);
+      document.addEventListener("proto:rerender", render);
+      document.addEventListener("proto:rolechange", render);
+      render();
+    })();
+  </script>
+</body>
+</html>

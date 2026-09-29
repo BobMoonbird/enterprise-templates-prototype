@@ -1,0 +1,163 @@
+<!--
+PROTOTYPE SCREEN: 07 — Create a workflow from approved templates with AI
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, AiAssistPanel, TemplateCard, ProvenanceChip, Button, Toast, Modal
+JOURNEY BEAT: AI climax — match golden template, confirm, trust copy → result
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>07 · Create a workflow from approved templates with AI</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item is-active" href="07-ai-assist.html"><span class="nav-item__icon">✦</span> AI</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Create with AI</strong>
+        <span class="provenance-chip provenance-chip--ai" data-block="ProvenanceChip">Composes from approved templates only</span>
+      </header>
+      <div class="app-shell__content">
+        <div data-block="AiAssistPanel">
+          <div class="ai-chat">
+            <div class="ai-chat__messages" id="ai-messages">
+              <div class="ai-msg ai-msg--bot">
+                I only build from <strong>Acme golden templates</strong> and allowlisted nodes.
+                What do you want to automate?
+              </div>
+              <div class="ai-msg ai-msg--user">
+                Route Slack support messages into Jira with severity labels
+              </div>
+              <div class="ai-msg ai-msg--bot" id="ai-match-msg">
+                Best match: <strong>Slack → Jira triage</strong> (Golden · Support · v1.4).
+                I’ll copy that company template and keep nodes inside the allowlist.
+                <div class="ai-msg__trust">✓ Trust: grounded in approved company library — not unconstrained generation.</div>
+              </div>
+            </div>
+            <div class="ai-chat__composer">
+              <input class="ai-chat__input" id="ai-input" type="text" placeholder="Describe a workflow…" value="" />
+              <button type="button" class="btn btn--primary" id="ai-send" data-block="Button">Send</button>
+            </div>
+          </div>
+
+          <aside class="ai-match" id="ai-match-panel">
+            <div class="ai-match__label">Approved template match</div>
+            <div class="ai-match__card" data-block="TemplateCard">
+              <span class="badge badge--golden">Golden</span>
+              <h3 id="match-name">Slack → Jira triage</h3>
+              <p id="match-desc">Route #support messages into Jira with severity labels and assignee rules.</p>
+              <div class="template-card__ownership" id="match-owner" style="margin-top:8px"></div>
+              <div class="template-card__nodes" style="margin-top:12px" id="match-nodes"></div>
+            </div>
+            <div class="ai-match__trust">
+              AI will <strong>copy this approved private-library template</strong>, not invent unreviewed nodes.
+              Same rails as gallery use and MCP — provenance carries owner.
+            </div>
+            <button type="button" class="btn btn--primary btn--lg" id="btn-confirm-ai" data-block="Button">
+              Confirm &amp; create
+            </button>
+            <button type="button" class="btn btn--ghost" id="btn-pick-other">Pick another golden…</button>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm modal -->
+  <div class="modal-backdrop" id="modal-ai-confirm" data-block="Modal" aria-hidden="true">
+    <div class="modal" role="dialog">
+      <div class="modal__header">
+        <h2 class="modal__title">Confirm AI create</h2>
+        <button type="button" class="icon-btn" data-close-modal="modal-ai-confirm">✕</button>
+      </div>
+      <div class="modal__body">
+        <p>Create a workflow from the golden template <strong id="confirm-tpl-name">Slack → Jira triage</strong>?</p>
+        <div class="notice">
+          Result will show provenance: <em>Created with AI from company template</em>.
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" data-close-modal="modal-ai-confirm">Cancel</button>
+        <button type="button" class="btn btn--primary" id="btn-ai-go">Create workflow</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20260929164000"></script>
+  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script>
+    (function () {
+      const match = ProtoState.getTemplate("tpl-slack-ticket") || ProtoState.getGolden()[0];
+      if (match) {
+        document.getElementById("match-name").textContent = match.name;
+        document.getElementById("match-desc").textContent = match.description;
+        document.getElementById("confirm-tpl-name").textContent = match.name;
+        const owner = match.owner || match.author || "";
+        const contribs = (match.contributors || []).filter(function (c) {
+          return c && c !== owner;
+        });
+        document.getElementById("match-owner").textContent =
+          "Owner: " + owner + (contribs.length ? " · Contributors: " + contribs.join(", ") : "");
+        document.getElementById("match-nodes").innerHTML = (match.nodes || [])
+          .map(function (n) {
+            return '<span class="node-chip">' + n + "</span>";
+          })
+          .join("");
+      }
+
+      document.getElementById("btn-confirm-ai").addEventListener("click", function () {
+        ProtoUI.openModal("modal-ai-confirm");
+      });
+
+      document.getElementById("btn-ai-go").addEventListener("click", function () {
+        ProtoState.setProvenance({
+          type: "ai",
+          templateId: match ? match.id : "tpl-slack-ticket",
+          templateName: match ? match.name : "Slack → Jira triage",
+          owner: match ? match.owner || match.author : null,
+          contributors: match ? match.contributors || [] : [],
+        });
+        ProtoUI.toast("Workflow created from approved template via AI", "success");
+        setTimeout(function () {
+          window.location.href = "08-result.html";
+        }, 400);
+      });
+
+      document.getElementById("btn-pick-other").addEventListener("click", function () {
+        window.location.href = "06-company-library.html";
+      });
+
+      document.getElementById("ai-send").addEventListener("click", function () {
+        const v = document.getElementById("ai-input").value.trim();
+        if (!v) return;
+        const box = document.getElementById("ai-messages");
+        box.insertAdjacentHTML(
+          "beforeend",
+          '<div class="ai-msg ai-msg--user">' +
+            v.replace(/</g, "&lt;") +
+            '</div><div class="ai-msg ai-msg--bot">Still matching against golden company templates only. Confirm the panel on the right when ready.</div>'
+        );
+        document.getElementById("ai-input").value = "";
+        box.scrollTop = box.scrollHeight;
+      });
+    })();
+  </script>
+</body>
+</html>

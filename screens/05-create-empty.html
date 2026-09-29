@@ -1,0 +1,108 @@
+<!--
+PROTOTYPE SCREEN: 05 — Start from blank or company template (role-aware)
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, CreateEmptyState, Button
+JOURNEY BEAT: Member loses blank create; Builder keeps all options
+MIRO (Frame 4): create-from-template via private library SoR
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>05 · Start from blank or company template (role-aware)</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item is-active" href="05-create-empty.html"><span class="nav-item__icon">＋</span> Create</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Create workflow</strong>
+        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Member</span></span>
+      </header>
+      <div class="app-shell__content">
+        <div id="member-banner" class="copy-rail-banner role-show-member" hidden>
+          <span>🔒</span>
+          <div>
+            <strong>Member role</strong> — start from the private company library (golden only)
+            or AI grounded in those templates. Blank canvas create is disabled by Admin policy.
+          </div>
+        </div>
+
+        <div data-block="CreateEmptyState">
+          <h1 class="create-empty__title">How do you want to start?</h1>
+          <p class="create-empty__sub secondary">
+            Company library is the system of record — not the public gallery.
+            Options change with your role.
+          </p>
+          <div class="create-options" id="create-options">
+            <a class="create-option is-clickable role-hide-member" href="02-builder-editor.html" id="opt-blank">
+              <div class="create-option__icon">◻</div>
+              <h3>Blank workflow</h3>
+              <p>Start from an empty canvas. Nodes still respect company policy rails.</p>
+            </a>
+            <a class="create-option is-clickable lib-create-primary" href="06-company-library.html" id="opt-library">
+              <div class="create-option__icon">◈</div>
+              <h3>Company library</h3>
+              <p>Browse / search / copy org-approved golden templates — private SoR.</p>
+            </a>
+            <a class="create-option is-clickable" href="07-ai-assist.html">
+              <div class="create-option__icon">✦</div>
+              <h3>Create with AI</h3>
+              <p>AI matches approved company templates, then asks you to confirm.</p>
+            </a>
+          </div>
+          <p class="muted" style="margin-top:24px;font-size:12px">
+            Tip: use <strong>Acting as</strong> in the demo bar to switch <strong>Builder</strong> vs <strong>Member</strong> and watch blank create appear/disappear.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20260929164000"></script>
+  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script>
+    (function () {
+      function sync() {
+        const role = ProtoState.get().role;
+        const banner = document.getElementById("member-banner");
+        const blank = document.getElementById("opt-blank");
+        if (role === "member") {
+          banner.hidden = false;
+          if (blank) {
+            blank.classList.add("is-disabled");
+            blank.removeAttribute("href");
+            blank.setAttribute("aria-disabled", "true");
+          }
+        } else {
+          banner.hidden = true;
+          if (blank) {
+            blank.classList.remove("is-disabled");
+            blank.href = "02-builder-editor.html";
+            blank.removeAttribute("aria-disabled");
+          }
+        }
+      }
+      document.addEventListener("proto:rolechange", sync);
+      document.addEventListener("proto:rerender", sync);
+      sync();
+    })();
+  </script>
+</body>
+</html>

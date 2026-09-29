@@ -1,0 +1,83 @@
+/* n8n-like dark product tokens — NOT Miro navy/yellow, NOT Approved Stack light paper */
+
+:root {
+  /* Surfaces */
+  --bg-app: #0a0a0a;
+  --bg-panel: #141414;
+  --bg-elevated: #1c1c1c;
+  --bg-hover: #242424;
+  --bg-active: #2a2a2a;
+  --bg-input: #111111;
+  --bg-canvas: #0d0d0d;
+
+  /* Borders */
+  --border: #2e2e2e;
+  --border-strong: #3d3d3d;
+  --border-focus: #ff6d33;
+
+  /* Text */
+  --text: #f0f0f0;
+  --text-secondary: #a3a3a3;
+  --text-muted: #6b6b6b;
+  --text-inverse: #0a0a0a;
+
+  /* Brand / CTA (n8n orange) */
+  --accent: #ff6d33;
+  --accent-hover: #ff8555;
+  --accent-tint: rgba(255, 109, 51, 0.14);
+  --accent-outline: rgba(255, 109, 51, 0.55);
+
+  /* Status */
+  --success: #3dcc91;
+  --success-tint: rgba(61, 204, 145, 0.14);
+  --warning: #f0b429;
+  --warning-tint: rgba(240, 180, 41, 0.14);
+  --danger: #f05151;
+  --danger-tint: rgba(240, 81, 81, 0.14);
+  --info: #5b8def;
+  --info-tint: rgba(91, 141, 239, 0.14);
+  --purple: #a78bfa;
+  --purple-tint: rgba(167, 139, 250, 0.14);
+
+  /* Lifecycle badge colors */
+  --badge-draft: #6b6b6b;
+  --badge-pending: #f0b429;
+  --badge-golden: #3dcc91;
+  --badge-archived: #8a8a8a;
+
+  /* Layout */
+  --sidebar-w: 220px;
+  --settings-nav-w: 200px;
+  --topbar-h: 48px;
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Type */
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SF Mono", "Menlo", "Consolas", monospace;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 20px;
+  --fs-2xl: 24px;
+
+  /* Elevation */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.65);
+
+  /* Proto chrome (demo only) */
+  --proto-bg: #111827;
+  --proto-border: #374151;
+  --proto-accent: #60a5fa;
+}

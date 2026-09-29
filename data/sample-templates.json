@@ -1,0 +1,123 @@
+{
+  "templates": [
+    {
+      "id": "tpl-invoice-ocr",
+      "name": "Invoice OCR → NetSuite",
+      "description": "Extract invoice fields via OCR and create NetSuite bills. Golden path for AP.",
+      "status": "golden",
+      "category": "Finance",
+      "nodes": ["Webhook", "HTTP Request", "Code", "NetSuite"],
+      "owner": "Maya Chen",
+      "contributors": ["Casey Brooks", "Finance CoE"],
+      "author": "Maya Chen",
+      "updated": "2026-09-18",
+      "uses": 142,
+      "version": "2.1",
+      "targetGroups": ["Finance ops", "AP shared services"]
+    },
+    {
+      "id": "tpl-slack-ticket",
+      "name": "Slack → Jira triage",
+      "description": "Route #support messages into Jira with severity labels and assignee rules.",
+      "status": "golden",
+      "category": "Support",
+      "nodes": ["Slack Trigger", "IF", "Jira", "Slack"],
+      "owner": "DevOps CoE",
+      "contributors": ["Sam Okonkwo", "Jordan Lee"],
+      "author": "DevOps CoE",
+      "updated": "2026-09-12",
+      "uses": 89,
+      "version": "1.4",
+      "targetGroups": ["Support", "IT helpdesk"]
+    },
+    {
+      "id": "tpl-hr-onboard",
+      "name": "New hire provisioning",
+      "description": "Okta + Google Workspace + Slack welcome for approved Workday hires.",
+      "status": "golden",
+      "category": "HR",
+      "nodes": ["Webhook", "Okta", "Gmail", "Slack"],
+      "owner": "Priya Nair",
+      "contributors": ["People Ops"],
+      "author": "People Ops",
+      "updated": "2026-08-30",
+      "uses": 56,
+      "version": "3.0",
+      "targetGroups": ["People Ops"]
+    },
+    {
+      "id": "tpl-crm-sync",
+      "name": "Salesforce ↔ Snowflake sync",
+      "description": "Nightly CRM opportunity snapshot into Snowflake for RevOps dashboards.",
+      "status": "pending",
+      "category": "RevOps",
+      "nodes": ["Schedule", "Salesforce", "Snowflake"],
+      "owner": "Jordan Lee",
+      "contributors": ["RevOps", "Data eng"],
+      "author": "Jordan Lee",
+      "updated": "2026-09-24",
+      "uses": 0,
+      "version": "1.0",
+      "submittedAt": "2026-09-24",
+      "submitNote": "Ready for CoE review — uses only allowlisted nodes.",
+      "targetGroups": ["RevOps"]
+    },
+    {
+      "id": "tpl-vendor-risk",
+      "name": "Vendor risk intake",
+      "description": "Form → risk score → ServiceNow change request for security review.",
+      "status": "pending",
+      "category": "Security",
+      "nodes": ["Form Trigger", "Code", "HTTP Request", "ServiceNow"],
+      "owner": "Alex Rivera",
+      "contributors": ["Security eng"],
+      "author": "Alex Rivera",
+      "updated": "2026-09-23",
+      "uses": 0,
+      "version": "0.9",
+      "submittedAt": "2026-09-23",
+      "submitNote": "Please confirm HTTP Request domain allowlist covers risk API.",
+      "targetGroups": ["Security eng", "Procurement"]
+    },
+    {
+      "id": "tpl-legacy-ftp",
+      "name": "Legacy FTP file drop",
+      "description": "Old SFTP ingest — superseded by S3 pattern. Kept for audit trail.",
+      "status": "archived",
+      "category": "Ops",
+      "nodes": ["Schedule", "FTP", "Move Binary Data"],
+      "owner": "Ops",
+      "contributors": ["Ops"],
+      "author": "Ops",
+      "updated": "2026-06-01",
+      "uses": 12,
+      "version": "1.2",
+      "targetGroups": []
+    },
+    {
+      "id": "tpl-draft-enrich",
+      "name": "Lead enrich (WIP)",
+      "description": "Builder draft — Clearbit enrich before CRM write.",
+      "status": "draft",
+      "category": "Sales",
+      "nodes": ["Webhook", "HTTP Request", "Salesforce"],
+      "owner": "You",
+      "contributors": ["You"],
+      "author": "You",
+      "updated": "2026-09-25",
+      "uses": 0,
+      "version": "0.1",
+      "targetGroups": ["Sales ops"]
+    }
+  ],
+  "queue": [
+    {
+      "id": "tpl-crm-sync",
+      "priority": "normal"
+    },
+    {
+      "id": "tpl-vendor-risk",
+      "priority": "high"
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+<!--
+PROTOTYPE SCREEN: 03 — Submit a workflow as an internal template
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, Modal (inline page form), Button, Toast, LifecycleBanner
+JOURNEY BEAT: Submit ≠ Publish/Unpublish — request CoE approval
+MIRO (Frame 4): owner / contributors / descriptions required; target groups optional future
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>03 · Submit a workflow as an internal template</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+</head>
+<body class="screen-submit">
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item" href="02-builder-editor.html"><span class="nav-item__icon">✎</span> Editor</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Submit as internal template</strong>
+        <a class="btn btn--ghost btn--sm" href="02-builder-editor.html">← Back to editor</a>
+      </header>
+      <div class="app-shell__content">
+        <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner" style="border-radius:8px;margin-bottom:24px;border:1px solid var(--border);max-width:560px">
+          <span class="badge badge--draft">Draft workflow</span>
+          <span>Submitting creates a <strong>Pending</strong> library item with owner &amp; description — it does not publish to the community.</span>
+        </div>
+
+        <div class="submit-vs-publish" style="margin-bottom:24px">
+          <div class="contrast-card contrast-card--good">
+            <strong>Submit as internal template</strong>
+            Sends to Approver queue → Golden / Request changes. Stays inside Acme.
+          </div>
+          <div class="contrast-card contrast-card--muted">
+            <strong>Publish / Unpublish</strong>
+            Community gallery controls — not this flow. Enterprise instances keep outbound gated.
+          </div>
+        </div>
+
+        <form id="submit-form" class="submit-form" data-block="Modal">
+          <div class="submit-form__fields">
+            <div class="field">
+              <label for="tpl-name">Template name</label>
+              <input id="tpl-name" value="AP invoice matcher" required />
+            </div>
+            <div class="field">
+              <label for="tpl-desc">Description</label>
+              <textarea id="tpl-desc" required>Matches vendor invoices to POs using allowlisted HTTP + Code + NetSuite nodes. Golden candidate for AP shared services.</textarea>
+              <span class="field-hint">Required on pending and approved templates — shown in library and queue.</span>
+            </div>
+            <div class="field">
+              <label for="tpl-owner">Owner</label>
+              <input id="tpl-owner" value="You" required />
+              <span class="field-hint">Accountable for this pattern after approval.</span>
+            </div>
+            <div class="field">
+              <label for="tpl-contrib">Contributors</label>
+              <input id="tpl-contrib" value="You, Finance CoE" />
+              <span class="field-hint">Comma-separated. Visible on pending and golden cards.</span>
+            </div>
+            <div class="field">
+              <label for="tpl-cat">Category</label>
+              <select id="tpl-cat">
+                <option>Finance</option>
+                <option>Support</option>
+                <option>HR</option>
+                <option>RevOps</option>
+                <option>Security</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="tpl-groups">Target groups <span class="lib-future-hint">(optional · future)</span></label>
+              <input id="tpl-groups" value="Finance ops, AP shared services" />
+              <span class="field-hint">Who should see this recommended first — not enforced yet.</span>
+            </div>
+            <div class="field">
+              <label for="tpl-note">Note to CoE</label>
+              <textarea id="tpl-note">Ready for review — all nodes on company allowlist.</textarea>
+              <span class="field-hint">Visible to approvers in the review queue.</span>
+            </div>
+          </div>
+          <div class="submit-form__actions">
+            <a class="btn btn--ghost" href="02-builder-editor.html">Cancel</a>
+            <button type="submit" class="btn btn--primary" data-block="Button">Submit for approval</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20260929164000"></script>
+  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script>
+    document.getElementById("submit-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      ProtoState.submitDraftAsPending({
+        name: document.getElementById("tpl-name").value,
+        description: document.getElementById("tpl-desc").value,
+        category: document.getElementById("tpl-cat").value,
+        note: document.getElementById("tpl-note").value,
+        owner: document.getElementById("tpl-owner").value,
+        contributors: document.getElementById("tpl-contrib").value,
+        targetGroups: document.getElementById("tpl-groups").value,
+      });
+      if (!ProtoState.get().libraryEnabled) {
+        ProtoState.setLibraryEnabled(true);
+      }
+      sessionStorage.setItem(
+        "proto-flash",
+        JSON.stringify({ message: "Submitted — pending CoE approval", type: "success" })
+      );
+      window.location.href = "03b-approval-queue.html";
+    });
+  </script>
+</body>
+</html>

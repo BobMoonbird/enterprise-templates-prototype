@@ -1,0 +1,195 @@
+<!--
+PROTOTYPE SCREEN: 02 — Build a workflow under policy rails
+BLOCKS: ProtoChrome, RoleSwitcher, WorkflowEditorChrome, NodePalette, LifecycleBanner, Button, Menu, Modal, Toast
+JOURNEY BEAT: Build within capability allowlist; soft-block disallowed tools; Request access; Builder sees Submit
+MIRO: Tools + HTTP domains enforced in palette; core nodes always on; blocked → request access
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>02 · Build a workflow under policy rails</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+</head>
+<body>
+  <div data-block="WorkflowEditorChrome">
+    <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner">
+      <span class="badge badge--draft">Draft</span>
+      <span>AP invoice matcher · not yet submitted to company library</span>
+    </div>
+    <div class="policy-rail" data-block="PolicyRail">
+      <span class="policy-rail__mark">Policy</span>
+      <span>
+        Capability allowlist enforced — integrations + HTTP domains (UI · API · MCP).
+        Core nodes stay available; blocked tools require Security exception.
+      </span>
+      <a class="policy-rail__link is-clickable" href="00-security-allowlist.html">View allowlist</a>
+    </div>
+    <header class="editor-topbar">
+      <a class="icon-btn" href="04-overview.html" title="Back" data-block="IconButton">←</a>
+      <span class="editor-topbar__name">AP invoice matcher</span>
+      <span class="editor-topbar__meta">Personal · saved 2m ago</span>
+      <span class="secondary" style="font-size:12px;margin-left:8px">Acting as <span data-role-label>Builder</span></span>
+      <div class="editor-topbar__actions">
+        <button type="button" class="btn btn--ghost btn--sm">Share</button>
+        <div class="relative role-show-submit">
+          <button type="button" class="btn btn--primary btn--sm" id="btn-submit-menu" data-block="Button">
+            Submit ▾
+          </button>
+          <div class="menu" id="submit-menu" data-block="Menu" style="right:0;top:36px;width:280px">
+            <button type="button" class="menu-item is-accent" id="menu-submit-internal">
+              <div>
+                <div class="menu-item__title">Submit as internal template</div>
+                <div class="menu-item__desc">Request CoE approval → company library (not community publish)</div>
+              </div>
+            </button>
+            <div class="menu-divider"></div>
+            <button type="button" class="menu-item" disabled style="opacity:0.4;pointer-events:none">
+              <div>
+                <div class="menu-item__title">Publish to community</div>
+                <div class="menu-item__desc">Blocked for enterprise instance</div>
+              </div>
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn btn--secondary btn--sm">Execute workflow</button>
+      </div>
+    </header>
+    <div class="editor-body">
+      <aside data-block="NodePalette">
+        <div class="palette-header">
+          <div>Nodes</div>
+          <div class="palette-header__sub">Allowlist on tools · domains</div>
+        </div>
+        <div class="palette-list" id="palette-list"></div>
+      </aside>
+      <div class="editor-canvas" id="canvas">
+        <div class="canvas-node" style="left:80px;top:120px">
+          <div class="canvas-node__type">Trigger</div>
+          <div class="canvas-node__name">Webhook</div>
+        </div>
+        <div class="canvas-wire" style="left:220px;top:148px;width:80px"></div>
+        <div class="canvas-node canvas-node--gated" style="left:300px;top:120px">
+          <div class="canvas-node__type">Core · domains gated</div>
+          <div class="canvas-node__name">HTTP Request</div>
+        </div>
+        <div class="canvas-wire" style="left:440px;top:148px;width:80px"></div>
+        <div class="canvas-node" style="left:520px;top:120px">
+          <div class="canvas-node__type">Core</div>
+          <div class="canvas-node__name">Code</div>
+        </div>
+        <div class="canvas-wire" style="left:660px;top:148px;width:80px"></div>
+        <div class="canvas-node" style="left:740px;top:120px">
+          <div class="canvas-node__type">Finance · allowed</div>
+          <div class="canvas-node__name">NetSuite</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20260929164000"></script>
+  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script>
+    (function () {
+      // Prefer builder for this beat
+      if (ProtoState.get().role === "security") {
+        ProtoState.setRole("builder");
+        const sel = document.querySelector(".role-switcher__select");
+        if (sel) sel.value = "builder";
+        ProtoUI.applyRoleChrome();
+      }
+
+      function renderPalette() {
+        const core = ProtoState.CORE_PALETTE || [];
+        const integrations = ProtoState.getAllowedNodes();
+        const blocked = ProtoState.getBlockedNodes();
+
+        function coreRow(n) {
+          return (
+            '<button type="button" class="palette-node" data-add-node="' +
+            n.id +
+            '"><span class="node-icon">' +
+            n.icon +
+            "</span>" +
+            n.name +
+            (n.domainGated
+              ? '<span class="palette-node__hint">Domains</span>'
+              : "") +
+            "</button>"
+          );
+        }
+
+        function integRow(n) {
+          return (
+            '<button type="button" class="palette-node" data-add-node="' +
+            n.id +
+            '"><span class="node-icon">' +
+            n.icon +
+            "</span>" +
+            n.name +
+            "</button>"
+          );
+        }
+
+        function blockedRow(n) {
+          return (
+            '<button type="button" class="palette-node is-blocked" data-node-blocked="' +
+            n.id +
+            '"><span class="node-icon">' +
+            n.icon +
+            "</span>" +
+            n.name +
+            '<span class="palette-node__lock">Blocked</span></button>'
+          );
+        }
+
+        document.getElementById("palette-list").innerHTML =
+          '<div class="palette-group"><div class="palette-group__title">Core (always on)</div>' +
+          core.map(coreRow).join("") +
+          "</div>" +
+          '<div class="palette-group"><div class="palette-group__title">Integrations (allowlisted)</div>' +
+          (integrations.length
+            ? integrations.map(integRow).join("")
+            : '<p class="palette-empty secondary">No integrations allowed yet</p>') +
+          "</div>" +
+          (blocked.length
+            ? '<div class="palette-group"><div class="palette-group__title">Not approved</div>' +
+              blocked.map(blockedRow).join("") +
+              "</div>"
+            : "");
+      }
+
+      document.getElementById("btn-submit-menu").addEventListener("click", function (e) {
+        e.stopPropagation();
+        document.getElementById("submit-menu").classList.toggle("is-open");
+      });
+      document.addEventListener("click", function () {
+        document.getElementById("submit-menu").classList.remove("is-open");
+      });
+
+      document.getElementById("menu-submit-internal").addEventListener("click", function () {
+        window.location.href = "03-submit-as-template.html";
+      });
+
+      document.getElementById("palette-list").addEventListener("click", function (e) {
+        const add = e.target.closest("[data-add-node]");
+        if (add) {
+          const id = add.getAttribute("data-add-node");
+          if (id === "core-http") {
+            ProtoUI.toast("HTTP Request added — hosts must match domain allowlist", "success");
+          } else {
+            ProtoUI.toast("Added capability (stub) — within allowlist", "success");
+          }
+        }
+      });
+
+      document.addEventListener("proto:rerender", renderPalette);
+      renderPalette();
+    })();
+  </script>
+</body>
+</html>

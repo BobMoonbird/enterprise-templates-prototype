@@ -1,0 +1,208 @@
+{
+  "description": "Capability allowlist seed — integrations/tools + HTTP domains (not a raw n8n node list). Mirrored in js/state.js for file://.",
+  "capabilities": [
+    {
+      "id": "cap-slack",
+      "name": "Slack",
+      "category": "Communication",
+      "kind": "integration",
+      "allowed": true,
+      "icon": "💬"
+    },
+    {
+      "id": "cap-jira",
+      "name": "Jira",
+      "category": "DevOps",
+      "kind": "integration",
+      "allowed": true,
+      "icon": "🎫"
+    },
+    {
+      "id": "cap-salesforce",
+      "name": "Salesforce",
+      "category": "CRM",
+      "kind": "integration",
+      "allowed": true,
+      "icon": "☁"
+    },
+    {
+      "id": "cap-snowflake",
+      "name": "Snowflake",
+      "category": "Data",
+      "kind": "integration",
+      "allowed": true,
+      "icon": "❄"
+    },
+    {
+      "id": "cap-okta",
+      "name": "Okta",
+      "category": "Identity",
+      "kind": "integration",
+      "allowed": true,
+      "icon": "🔐"
+    },
+    {
+      "id": "cap-netsuite",
+      "name": "NetSuite",
+      "category": "Finance",
+      "kind": "integration",
+      "allowed": true,
+      "icon": "📊"
+    },
+    {
+      "id": "cap-servicenow",
+      "name": "ServiceNow",
+      "category": "ITSM",
+      "kind": "integration",
+      "allowed": true,
+      "icon": "🛠"
+    },
+    {
+      "id": "cap-gmail",
+      "name": "Gmail",
+      "category": "Communication",
+      "kind": "integration",
+      "allowed": true,
+      "icon": "✉"
+    },
+    {
+      "id": "cap-ssh",
+      "name": "SSH",
+      "category": "System",
+      "kind": "dangerous",
+      "allowed": false,
+      "icon": "🖥",
+      "blockReason": "Shell access blocked by Security policy SEC-CAP-12. Request exception via #security-automation."
+    },
+    {
+      "id": "cap-execute-command",
+      "name": "Execute Command",
+      "category": "System",
+      "kind": "dangerous",
+      "allowed": false,
+      "icon": "⌘",
+      "blockReason": "Arbitrary command execution is not approved. Prefer HTTP Request (domain-gated) or Code with reviewed libraries."
+    },
+    {
+      "id": "cap-ftp",
+      "name": "FTP",
+      "category": "Files",
+      "kind": "dangerous",
+      "allowed": false,
+      "icon": "📁",
+      "blockReason": "FTP deprecated — use S3 / approved file connectors only."
+    }
+  ],
+  "domains": [
+    {
+      "id": "dom-netsuite",
+      "pattern": "api.netsuite.com",
+      "allowed": true,
+      "note": "ERP APIs"
+    },
+    {
+      "id": "dom-acme",
+      "pattern": "*.acme.co",
+      "allowed": true,
+      "note": "Internal services"
+    },
+    {
+      "id": "dom-okta",
+      "pattern": "*.okta.com",
+      "allowed": true,
+      "note": "IdP"
+    },
+    {
+      "id": "dom-slack",
+      "pattern": "*.slack.com",
+      "allowed": true,
+      "note": "Messaging APIs"
+    },
+    {
+      "id": "dom-webhook-site",
+      "pattern": "*.webhook.site",
+      "allowed": false,
+      "note": "Public request bins",
+      "blockReason": "Public requestbin domains blocked by SEC-HTTP-03."
+    },
+    {
+      "id": "dom-ngrok",
+      "pattern": "*.ngrok.io",
+      "allowed": false,
+      "note": "Ephemeral tunnels",
+      "blockReason": "Ephemeral tunnel hosts are not approved for production workflows."
+    }
+  ],
+  "corePalette": [
+    { "id": "core-webhook", "name": "Webhook", "category": "Core", "icon": "⚡", "alwaysOn": true },
+    {
+      "id": "core-http",
+      "name": "HTTP Request",
+      "category": "Core",
+      "icon": "🌐",
+      "alwaysOn": true,
+      "domainGated": true
+    },
+    { "id": "core-code", "name": "Code", "category": "Core", "icon": "{ }", "alwaysOn": true },
+    { "id": "core-if", "name": "IF", "category": "Core", "icon": "◇", "alwaysOn": true },
+    { "id": "core-schedule", "name": "Schedule Trigger", "category": "Core", "icon": "⏱", "alwaysOn": true }
+  ],
+  "roles": [
+    {
+      "id": "security",
+      "label": "Security",
+      "description": "Defines capability allowlist (tools + HTTP domains) and reviews exceptions.",
+      "canCreate": true,
+      "canCopy": true,
+      "canSubmit": false,
+      "canApprove": false,
+      "canManageRoles": false,
+      "canManageAllowlist": true,
+      "canEnableLibrary": false
+    },
+    {
+      "id": "admin",
+      "label": "Admin",
+      "description": "Assigns create vs copy roles; enables company library; can approve templates.",
+      "canCreate": true,
+      "canCopy": true,
+      "canSubmit": true,
+      "canApprove": true,
+      "canManageRoles": true,
+      "canManageAllowlist": false,
+      "canEnableLibrary": true
+    },
+    {
+      "id": "builder",
+      "label": "Builder",
+      "description": "Creates workflows within allowlist; submits as internal templates.",
+      "canCreate": true,
+      "canCopy": true,
+      "canSubmit": true,
+      "canApprove": false,
+      "canManageRoles": false,
+      "canManageAllowlist": false,
+      "canEnableLibrary": false
+    },
+    {
+      "id": "member",
+      "label": "Member",
+      "description": "Copies / modifies approved company templates; cannot start blank workflows.",
+      "canCreate": false,
+      "canCopy": true,
+      "canSubmit": false,
+      "canApprove": false,
+      "canManageRoles": false,
+      "canManageAllowlist": false,
+      "canEnableLibrary": false
+    }
+  ],
+  "people": [
+    { "id": "u1", "name": "Maya Chen", "email": "maya@acme.co", "role": "builder", "team": "Finance ops" },
+    { "id": "u2", "name": "Jordan Lee", "email": "jordan@acme.co", "role": "builder", "team": "RevOps" },
+    { "id": "u3", "name": "Sam Okonkwo", "email": "sam@acme.co", "role": "member", "team": "Support" },
+    { "id": "u4", "name": "Priya Nair", "email": "priya@acme.co", "role": "member", "team": "HR ops" },
+    { "id": "u5", "name": "Alex Rivera", "email": "alex@acme.co", "role": "builder", "team": "Security eng" },
+    { "id": "u6", "name": "Casey Brooks", "email": "casey@acme.co", "role": "admin", "team": "Automation CoE" }
+  ]
+}

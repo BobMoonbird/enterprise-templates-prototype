@@ -1,0 +1,90 @@
+<!--
+PROTOTYPE SCREEN: 04 — Browse workflows after publish
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, Button, IconButton, Menu
+JOURNEY BEAT: Workflow list → Create (role-aware entry to 05)
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>04 · Browse workflows after publish</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item is-active" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item" href="02-builder-editor.html"><span class="nav-item__icon">✎</span> Editor</a>
+        <a class="nav-item" href="00-security-allowlist.html"><span class="nav-item__icon">⚙</span> Settings</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Overview</strong>
+        <div class="flex gap-2">
+          <a class="btn btn--primary" data-block="Button" href="05-create-empty.html">Create workflow</a>
+        </div>
+      </header>
+      <div class="app-shell__content">
+        <div class="page-header">
+          <h1>Workflows</h1>
+          <p class="secondary">Personal and shared workflows. New work starts from Create — chrome depends on role.</p>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="stat__value" id="stat-wf">12</div><div class="stat__label">Workflows</div></div>
+          <div class="stat"><div class="stat__value" id="stat-golden">—</div><div class="stat__label">Golden templates</div></div>
+          <div class="stat"><div class="stat__value" id="stat-pending">—</div><div class="stat__label">Pending approval</div></div>
+        </div>
+        <div class="wf-list">
+          <div class="wf-list__header">
+            <span>Name</span><span>Updated</span><span>Status</span><span></span>
+          </div>
+          <a class="wf-list__row is-clickable" href="02-builder-editor.html">
+            <span class="wf-list__name">AP invoice matcher</span>
+            <span class="muted">Today</span>
+            <span class="badge badge--draft">Draft</span>
+            <button type="button" class="icon-btn" data-block="IconButton" aria-label="Menu">⋮</button>
+          </a>
+          <a class="wf-list__row is-clickable" href="08-result.html">
+            <span class="wf-list__name">Slack → Jira triage (from template)</span>
+            <span class="muted">Yesterday</span>
+            <span class="badge badge--golden">Active</span>
+            <span></span>
+          </a>
+          <div class="wf-list__row">
+            <span class="wf-list__name">Nightly Salesforce sync</span>
+            <span class="muted">3d ago</span>
+            <span class="badge badge--pending">Error</span>
+            <span></span>
+          </div>
+          <div class="wf-list__row">
+            <span class="wf-list__name">New hire provisioning</span>
+            <span class="muted">1w ago</span>
+            <span class="badge badge--golden">Active</span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20260929164000"></script>
+  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script>
+    document.getElementById("stat-golden").textContent = ProtoState.getGolden().length;
+    document.getElementById("stat-pending").textContent = ProtoState.getPending().length;
+  </script>
+</body>
+</html>
