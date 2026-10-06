@@ -9,10 +9,10 @@ JOURNEY BEAT: Admin opt-in · empty catalog until blocks approved (unhappy path 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-01 · Enable building-blocks library</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261006230000" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261006230000" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261006230000" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006232100" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006232100" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006232100" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006232100" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -49,22 +49,12 @@ JOURNEY BEAT: Admin opt-in · empty catalog until blocks approved (unhappy path 
               </p>
             </div>
 
-            <div class="lib-callout" data-block="LibraryEnableToggle">
-              <span aria-hidden="true">◇</span>
-              <div>
-                <strong>Must for this short prototype.</strong>
-                Enable the library first. Until builders submit and you approve,
-                Members see an <em>empty</em> catalog — public gallery is still not the SoR.
-              </div>
-            </div>
-
             <div data-block="LibraryEnableToggle">
               <div class="toggle-row">
                 <div class="toggle-row__text">
-                  <h3>Show building-blocks library in this instance</h3>
+                  <h3>Enable company building blocks</h3>
                   <p>
-                    When on, Members browse approved company blocks. Create/copy rails
-                    apply on UI, AI, and MCP the same way.
+                    When on, Members can use company-level tools, skills and workflows
                   </p>
                 </div>
                 <button
@@ -91,30 +81,6 @@ JOURNEY BEAT: Admin opt-in · empty catalog until blocks approved (unhappy path 
               </a>
             </div>
 
-            <div class="enable-checklist">
-              <div class="enable-check">
-                <span class="enable-check__icon">✓</span>
-                <div>
-                  <strong>Tools · skills · agents</strong>
-                  <p class="secondary">Not a full golden-workflow SoR tour — composable units.</p>
-                </div>
-              </div>
-              <div class="enable-check">
-                <span class="enable-check__icon">✓</span>
-                <div>
-                  <strong>Create/copy rails</strong>
-                  <p class="secondary">Same rules on UI, AI assist, and MCP.</p>
-                </div>
-              </div>
-              <div class="enable-check">
-                <span class="enable-check__icon">✓</span>
-                <div>
-                  <strong>Security allowlist</strong>
-                  <p class="secondary">Stays in Full (V2) — struck from this short path.</p>
-                </div>
-              </div>
-            </div>
-
             <div style="margin-top:24px" class="flex gap-3">
               <a class="btn btn--primary" href="02-builder-rails.html?proto=v3" id="next-builder">
                 Next: Build under rails →
@@ -127,8 +93,8 @@ JOURNEY BEAT: Admin opt-in · empty catalog until blocks approved (unhappy path 
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261006230000"></script>
-  <script src="../../js/interactions.js?v=20261006230000"></script>
+  <script src="../../js/state.js?v=20261006232100"></script>
+  <script src="../../js/interactions.js?v=20261006232100"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
