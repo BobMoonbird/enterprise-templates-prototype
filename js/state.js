@@ -510,15 +510,15 @@
     {
       id: "V3-03",
       file: "v3/03-mark-company-block.html",
-      title: "Mark selection as a company building block",
-      beat: "Submit ≠ publish — pending until Admin",
+      title: "Submit workflow entities for company approval",
+      beat: "Multi-select entities · submit ≠ publish",
       role: "builder",
     },
     {
       id: "V3-04",
       file: "v3/01-enable-library.html",
-      title: "Approve a pending building block",
-      beat: "Same Admin page — Approve → published company block",
+      title: "Approve pending building blocks",
+      beat: "Same Admin page — Approve → published company blocks",
       role: "admin",
     },
     {
@@ -573,6 +573,52 @@
     { role: "admin", job: "Enable building-blocks library · approve pending blocks (one settings page)" },
     { role: "builder", job: "Build under rails · mark as company building block (pending)" },
     { role: "member", job: "Compose from approved blocks · AI + MCP same create/copy rails" },
+  ];
+
+  /**
+   * Entities present in the V3 demo workflow “Okta user resolve”.
+   * Used by Save as building block — multi-select concrete units, not abstract Type+Name.
+   * Preselect skill + Okta tool so the demo story is obvious.
+   */
+  const WORKFLOW_SUBMIT_ENTITIES = [
+    {
+      id: "ent-wf-okta-resolve",
+      kind: "workflow",
+      name: "Okta user resolve",
+      description:
+        "Full workflow template — webhook → Okta lookup → Code shape for downstream use.",
+      category: "Identity",
+      caps: ["Webhook", "Okta", "Code"],
+      preselected: false,
+    },
+    {
+      id: "ent-tool-okta-api",
+      kind: "tool",
+      name: "Okta API tool",
+      description: "Okta connector configured for user profile resolve in this workflow.",
+      category: "Identity",
+      caps: ["Okta"],
+      preselected: true,
+    },
+    {
+      id: "ent-tool-slack-notify",
+      kind: "tool",
+      name: "Slack notify",
+      description: "Posts a structured notification when resolve succeeds or fails.",
+      category: "Communication",
+      caps: ["Slack"],
+      preselected: false,
+    },
+    {
+      id: "ent-skill-okta-resolve",
+      kind: "skill",
+      name: "Resolve user from Okta",
+      description:
+        "Given a work email, fetch Okta profile and return display_name + department.",
+      category: "Identity",
+      caps: ["Okta"],
+      preselected: true,
+    },
   ];
 
   /**
@@ -820,6 +866,7 @@
     DEMO_MAP_SECTIONS_V2,
     DEMO_MAP_SECTIONS_V3,
     DEFAULT_V3_BLOCKS,
+    WORKFLOW_SUBMIT_ENTITIES,
     CORE_PALETTE,
     DEFAULT_SKILLS,
     get DEMO_PATH() {
@@ -933,12 +980,23 @@
     /** Builder marks a unit as company building block → pending (not live). */
     submitCompanyBlock(opts) {
       if (!state.blocks) state.blocks = [];
-      const kind = (opts && opts.kind) || "skill";
+      const kindRaw = (opts && opts.kind) || "skill";
+      const kind =
+        kindRaw === "tool" ||
+        kindRaw === "agent" ||
+        kindRaw === "skill" ||
+        kindRaw === "workflow"
+          ? kindRaw
+          : "skill";
       const owner = (opts && opts.owner) || "You";
-      const id = "bb-submitted-" + Date.now();
+      const id =
+        (opts && opts.idPrefix ? opts.idPrefix + "-" : "bb-submitted-") +
+        Date.now() +
+        "-" +
+        Math.floor(Math.random() * 1000);
       const item = {
         id: id,
-        kind: kind === "tool" || kind === "agent" || kind === "skill" ? kind : "skill",
+        kind: kind,
         name: (opts && opts.name) || "Untitled building block",
         description: (opts && opts.description) || "",
         status: "pending",
@@ -953,11 +1011,39 @@
         outputs: (opts && opts.outputs) || [],
         submittedAt: new Date().toISOString().slice(0, 10),
         submitNote: (opts && opts.note) || "Submitted as company building block — awaiting Admin.",
+        sourceEntityId: (opts && opts.sourceEntityId) || null,
       };
       state.blocks.unshift(item);
       state.lastSavedSkill = item;
       save(state);
       return item;
+    },
+    /**
+     * Submit multiple concrete entities from a workflow for Admin approval.
+     * Each selected entity becomes its own pending company block.
+     */
+    submitCompanyBlocks(entities, shared) {
+      shared = shared || {};
+      const list = Array.isArray(entities) ? entities : [];
+      const created = [];
+      list.forEach(function (ent, i) {
+        if (!ent) return;
+        const item = this.submitCompanyBlock({
+          kind: ent.kind,
+          name: ent.name,
+          description: ent.description,
+          category: ent.category,
+          caps: ent.caps,
+          inputs: ent.inputs,
+          outputs: ent.outputs,
+          owner: shared.owner || "You",
+          note: shared.note,
+          idPrefix: "bb-ent-" + i,
+          sourceEntityId: ent.id,
+        });
+        created.push(item);
+      }, this);
+      return created;
     },
     updateBlockStatus(id, status, extra) {
       if (!state.blocks) state.blocks = [];

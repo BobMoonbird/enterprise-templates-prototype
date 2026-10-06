@@ -67,8 +67,8 @@ Spurs: **07** AI, **09** MCP, **10** / **10b** skills/blocks.
 
 1. **V3-01** Enable building-blocks library (empty until approve)  
 2. **V3-02** Build tool/skill/agent under rails (soft-block)  
-3. **V3-03** Mark as company building block — **submit ≠ publish**  
-4. **V3-04** Admin approve → published  
+3. **V3-03** Submit workflow entities (multi-select) — **submit ≠ publish**  
+4. **V3-04** Admin approve pending blocks → published  
 5. **V3-05** Member create — blank denied (request vs start from block)  
 6. **V3-06** Gallery (empty-state beat + tools/skills/agents)  
 7. **V3-07** Compose canvas + provenance  
@@ -88,7 +88,7 @@ Spurs: **07** AI, **09** MCP, **10** / **10b** skills/blocks.
 |------|------|
 | `screens/v3/01-enable-library.html` | Admin settings: enable + approvals (one page; also V3-04 beat) |
 | `screens/v3/02-builder-rails.html` | Builder under rails |
-| `screens/v3/03-mark-company-block.html` | Submit ≠ publish |
+| `screens/v3/03-mark-company-block.html` | Multi-select entities · submit ≠ publish |
 | `screens/v3/04-approve-block.html` | Redirect → combined Admin settings |
 | `screens/v3/05-create-workflow.html` | Member create rails |
 | `screens/v3/06-blocks-gallery.html` | Gallery + empty state |

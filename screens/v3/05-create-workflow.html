@@ -9,10 +9,10 @@ JOURNEY BEAT: Member denied blank — modal: request access vs start from approv
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-05 · Create from approved blocks</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261006233332" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261006233332" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261006233332" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261006233332" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006233700" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006233700" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006233700" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006233700" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -34,19 +34,8 @@ JOURNEY BEAT: Member denied blank — modal: request access vs start from approv
         <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Member</span></span>
       </header>
       <div class="app-shell__content">
-        <div id="member-banner" class="copy-rail-banner">
-          <span>🔒</span>
-          <div>
-            <strong>Member create/copy rails</strong> — start from approved company building blocks
-            or AI grounded in those blocks. Blank canvas create is denied by Admin policy.
-          </div>
-        </div>
-
         <div data-block="CreateEmptyState">
           <h1 class="create-empty__title">How do you want to start?</h1>
-          <p class="create-empty__sub secondary">
-            Company building blocks are the system of record — not the public gallery.
-          </p>
           <div class="create-options" id="create-options">
             <button type="button" class="create-option is-clickable" id="opt-blank" style="text-align:left;width:100%;font:inherit;color:inherit;cursor:pointer">
               <div class="create-option__icon">◻</div>
@@ -64,9 +53,6 @@ JOURNEY BEAT: Member denied blank — modal: request access vs start from approv
               <p>AI offers only approved company blocks, then asks you to confirm.</p>
             </a>
           </div>
-          <p class="muted" style="margin-top:24px;font-size:12px">
-            Proto note: click <strong>Blank workflow</strong> as Member for the denied-create modal.
-          </p>
         </div>
       </div>
     </div>
@@ -94,8 +80,8 @@ JOURNEY BEAT: Member denied blank — modal: request access vs start from approv
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261006233332"></script>
-  <script src="../../js/interactions.js?v=20261006233332"></script>
+  <script src="../../js/state.js?v=20261006233700"></script>
+  <script src="../../js/interactions.js?v=20261006233700"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {

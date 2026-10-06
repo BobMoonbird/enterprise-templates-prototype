@@ -9,10 +9,10 @@ JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/ag
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-06 · Building blocks gallery</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261006233332" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261006233332" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261006233332" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261006233332" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006233700" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006233700" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006233700" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006233700" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -44,12 +44,6 @@ JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/ag
             Tools, skills, and agents certified for the org — not full workflow SoR,
             and not the public community gallery.
           </p>
-        </div>
-
-        <div class="lib-role-banner" id="role-banner"></div>
-        <div class="notice" id="lib-notice" hidden>
-          Building-blocks library is off for this instance.
-          <a href="01-enable-library.html?proto=v3" style="color:var(--accent);margin-left:8px">Settings →</a>
         </div>
 
         <div data-block="GalleryToolbar" id="gallery-toolbar">
@@ -84,8 +78,8 @@ JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/ag
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261006233332"></script>
-  <script src="../../js/interactions.js?v=20261006233332"></script>
+  <script src="../../js/state.js?v=20261006233700"></script>
+  <script src="../../js/interactions.js?v=20261006233700"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -129,28 +123,11 @@ JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/ag
       }
 
       function render() {
-        const on = ProtoState.get().libraryEnabled;
-        document.getElementById("lib-notice").hidden = on;
-        document.getElementById("gallery-toolbar").hidden = !on;
-        document.getElementById("role-banner").innerHTML =
-          ProtoState.get().role === "member"
-            ? "<strong>Member</strong> — approved (published) building blocks only."
-            : ProtoState.get().role === "builder"
-              ? "<strong>Builder</strong> — published blocks plus your pending submissions."
-              : "<strong>Admin</strong> — full pipeline visibility.";
-
         const grid = document.getElementById("template-grid");
         const empty = document.getElementById("empty-state");
         const nextRow = document.getElementById("next-row");
-
-        if (!on) {
-          grid.innerHTML = "";
-          empty.hidden = true;
-          nextRow.hidden = true;
-          return;
-        }
-
         const list = visibleBlocks();
+
         if (!list.length) {
           grid.innerHTML = "";
           empty.hidden = false;

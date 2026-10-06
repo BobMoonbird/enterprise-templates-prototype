@@ -1,18 +1,18 @@
 <!--
-PROTOTYPE SCREEN: V3-03 — Mark as company building block
+PROTOTYPE SCREEN: V3-03 — Submit workflow entities for company approval
 BLOCKS: ProtoChrome, AppShell, LifecycleBanner, Button, Toast
-JOURNEY BEAT: Submit ≠ publish — toast makes clear not live until Admin approves
+JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS workflow
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>V3-03 · Mark as company building block</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261006233332" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261006233332" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261006233332" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261006233332" />
+  <title>V3-03 · Submit for company approval</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006233700" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006233700" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006233700" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006233700" />
 </head>
 <body class="screen-submit">
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -30,22 +30,22 @@ JOURNEY BEAT: Submit ≠ publish — toast makes clear not live until Admin appr
 
     <div class="app-shell__main">
       <header class="app-shell__topbar">
-        <strong>Mark as company building block</strong>
+        <strong>Save as building block</strong>
         <a class="btn btn--ghost btn--sm" href="02-builder-rails.html?proto=v3">← Back to editor</a>
       </header>
       <div class="app-shell__content">
-        <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner" style="border-radius:8px;margin-bottom:24px;border:1px solid var(--border);max-width:560px">
+        <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner" style="border-radius:8px;margin-bottom:24px;border:1px solid var(--border);max-width:640px">
           <span class="badge badge--draft">Not published</span>
           <span>
-            Submitting creates a <strong>Pending</strong> company block — Members cannot use it
+            Submitting creates <strong>Pending</strong> company blocks — Members cannot use them
             until an Admin approves.
           </span>
         </div>
 
-        <div class="submit-vs-publish" style="margin-bottom:24px">
+        <div class="submit-vs-publish" style="margin-bottom:24px;max-width:640px">
           <div class="contrast-card contrast-card--good">
-            <strong>Mark as company building block</strong>
-            Sends to Admin queue → published / request changes. Stays inside Acme.
+            <strong>Submit for company approval</strong>
+            Selected entities go to the Admin queue. Stays inside Acme.
           </div>
           <div class="contrast-card contrast-card--muted">
             <strong>Live for Members</strong>
@@ -53,54 +53,46 @@ JOURNEY BEAT: Submit ≠ publish — toast makes clear not live until Admin appr
           </div>
         </div>
 
-        <form id="submit-form" class="submit-form" data-block="Modal">
+        <form id="submit-form" class="submit-form submit-form--wide" data-block="Modal">
           <div class="submit-form__fields">
             <div class="field">
-              <label>Type</label>
-              <div class="kind-toggle" role="group" aria-label="Block kind">
-                <button type="button" class="kind-toggle__btn" data-kind="tool">Tool</button>
-                <button type="button" class="kind-toggle__btn is-active" data-kind="skill">Skill</button>
-                <button type="button" class="kind-toggle__btn" data-kind="agent">Agent</button>
+              <div class="entity-list__header">
+                <div>
+                  <label style="margin:0">Entities in this workflow</label>
+                  <p class="secondary" style="margin:4px 0 0;font-size:12px">
+                    From <strong>Okta user resolve</strong> — select all or some to submit.
+                  </p>
+                </div>
+                <div class="entity-list__bulk">
+                  <button type="button" class="btn btn--ghost btn--sm" id="btn-select-all">Select all</button>
+                  <button type="button" class="btn btn--ghost btn--sm" id="btn-clear">Clear</button>
+                </div>
               </div>
-              <input type="hidden" id="bb-kind" value="skill" />
+              <div class="entity-list" id="entity-list" role="group" aria-label="Workflow entities"></div>
+              <p class="secondary" id="selection-count" style="margin-top:10px;font-size:12px"></p>
             </div>
             <div class="field">
-              <label for="bb-name">Name</label>
-              <input id="bb-name" value="Resolve user from Okta" required />
-            </div>
-            <div class="field">
-              <label for="bb-desc">Description</label>
-              <textarea id="bb-desc" required>Given a work email, fetch Okta profile and return display_name + department for downstream workflows.</textarea>
+              <label for="bb-note">Note to Admin</label>
+              <textarea id="bb-note">Reusable candidates from Okta user resolve — please review for company library.</textarea>
             </div>
             <div class="field">
               <label for="bb-owner">Owner</label>
               <input id="bb-owner" value="You" required />
             </div>
-            <div class="field">
-              <label for="bb-cat">Category</label>
-              <select id="bb-cat">
-                <option>Identity</option>
-                <option>Support</option>
-                <option>Finance</option>
-                <option>Ops</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="bb-note">Note to Admin</label>
-              <textarea id="bb-note">Reusable skill candidate — fixed I/O, Okta only.</textarea>
-            </div>
           </div>
           <div class="submit-form__actions">
             <a class="btn btn--ghost" href="02-builder-rails.html?proto=v3">Cancel</a>
-            <button type="submit" class="btn btn--primary" data-block="Button">Submit for approval</button>
+            <button type="submit" class="btn btn--primary" id="btn-submit" data-block="Button">
+              Submit selected for approval
+            </button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261006233332"></script>
-  <script src="../../js/interactions.js?v=20261006233332"></script>
+  <script src="../../js/state.js?v=20261006233700"></script>
+  <script src="../../js/interactions.js?v=20261006233700"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -108,38 +100,148 @@ JOURNEY BEAT: Submit ≠ publish — toast makes clear not live until Admin appr
       }
       ProtoState.setRole("builder");
 
-      document.querySelectorAll("[data-kind]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          document.querySelectorAll("[data-kind]").forEach(function (b) {
-            b.classList.toggle("is-active", b === btn);
+      const entities = ProtoState.WORKFLOW_SUBMIT_ENTITIES || [];
+      const listEl = document.getElementById("entity-list");
+      const countEl = document.getElementById("selection-count");
+      const submitBtn = document.getElementById("btn-submit");
+
+      function selectedIds() {
+        return Array.prototype.map
+          .call(listEl.querySelectorAll('input[type="checkbox"]:checked'), function (cb) {
+            return cb.value;
           });
-          document.getElementById("bb-kind").value = btn.getAttribute("data-kind");
+      }
+
+      function updateCount() {
+        const n = selectedIds().length;
+        const total = entities.filter(function (e) {
+          return e.kind !== "agent" || e.name;
+        }).length;
+        countEl.textContent =
+          n === 0
+            ? "Nothing selected — pick at least one entity."
+            : n + " of " + total + " selected · pending until Admin approves";
+        submitBtn.disabled = n === 0;
+      }
+
+      function renderList() {
+        const byKind = { workflow: [], tool: [], skill: [], agent: [] };
+        entities.forEach(function (e) {
+          if (!byKind[e.kind]) byKind[e.kind] = [];
+          byKind[e.kind].push(e);
         });
+
+        const order = [
+          { key: "workflow", label: "Workflow" },
+          { key: "tool", label: "Tools" },
+          { key: "skill", label: "Skills" },
+          { key: "agent", label: "Agents" },
+        ];
+
+        let html = "";
+        order.forEach(function (section) {
+          const items = byKind[section.key] || [];
+          html += '<div class="entity-section">';
+          html += '<div class="entity-section__label">' + section.label + "</div>";
+          if (!items.length) {
+            html += '<div class="entity-empty">None in this workflow</div>';
+          } else {
+            html += items
+              .map(function (e) {
+                const checked = e.preselected ? " checked" : "";
+                return (
+                  '<label class="entity-row' +
+                  (e.preselected ? " is-selected" : "") +
+                  '">' +
+                  '<input type="checkbox" name="entity" value="' +
+                  e.id +
+                  '"' +
+                  checked +
+                  " />" +
+                  '<div class="entity-row__body">' +
+                  '<div class="entity-row__title">' +
+                  e.name +
+                  " " +
+                  (ProtoUI.kindBadge ? ProtoUI.kindBadge(e.kind) : "") +
+                  "</div>" +
+                  '<div class="entity-row__desc">' +
+                  (e.description || "") +
+                  "</div>" +
+                  (e.caps && e.caps.length
+                    ? '<div class="entity-row__caps">' +
+                      e.caps
+                        .map(function (c) {
+                          return '<span class="node-chip">' + c + "</span>";
+                        })
+                        .join("") +
+                      "</div>"
+                    : "") +
+                  "</div></label>"
+                );
+              })
+              .join("");
+          }
+          html += "</div>";
+        });
+        listEl.innerHTML = html;
+
+        listEl.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+          cb.addEventListener("change", function () {
+            cb.closest(".entity-row").classList.toggle("is-selected", cb.checked);
+            updateCount();
+          });
+        });
+        updateCount();
+      }
+
+      document.getElementById("btn-select-all").addEventListener("click", function () {
+        listEl.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+          cb.checked = true;
+          cb.closest(".entity-row").classList.add("is-selected");
+        });
+        updateCount();
+      });
+
+      document.getElementById("btn-clear").addEventListener("click", function () {
+        listEl.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+          cb.checked = false;
+          cb.closest(".entity-row").classList.remove("is-selected");
+        });
+        updateCount();
       });
 
       document.getElementById("submit-form").addEventListener("submit", function (e) {
         e.preventDefault();
-        ProtoState.submitCompanyBlock({
-          kind: document.getElementById("bb-kind").value,
-          name: document.getElementById("bb-name").value,
-          description: document.getElementById("bb-desc").value,
-          category: document.getElementById("bb-cat").value,
+        const ids = selectedIds();
+        if (!ids.length) return;
+
+        const selected = entities.filter(function (ent) {
+          return ids.indexOf(ent.id) >= 0;
+        });
+        const created = ProtoState.submitCompanyBlocks(selected, {
           owner: document.getElementById("bb-owner").value,
           note: document.getElementById("bb-note").value,
-          caps: ["Okta"],
         });
         if (!ProtoState.get().libraryEnabled) {
           ProtoState.setLibraryEnabled(true);
         }
+        const n = created.length;
         sessionStorage.setItem(
           "proto-flash",
           JSON.stringify({
-            message: "Submitted as Pending — not live for Members until Admin approves",
+            message:
+              "Submitted " +
+              n +
+              " pending block" +
+              (n === 1 ? "" : "s") +
+              " — not live for Members until Admin approves",
             type: "warning",
           })
         );
         window.location.href = "01-enable-library.html?proto=v3&beat=V3-04";
       });
+
+      renderList();
     })();
   </script>
 </body>

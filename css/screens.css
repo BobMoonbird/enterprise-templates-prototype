@@ -311,7 +311,7 @@
 
 /* Submit as template — single left-aligned form column */
 .screen-submit .app-shell__content {
-  max-width: 640px;
+  max-width: 720px;
 }
 
 .submit-form {
@@ -327,6 +327,10 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   text-align: left;
+}
+
+.submit-form--wide {
+  max-width: 640px;
 }
 
 .submit-form__fields {
@@ -948,4 +952,97 @@
 .skill-card .btn {
   align-self: flex-start;
   margin-top: 4px;
+}
+
+/* V3-03 — multi-select entities from this workflow */
+.entity-list__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.entity-list__bulk {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.entity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.entity-section__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.entity-empty {
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+.entity-row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.entity-row + .entity-row {
+  margin-top: 8px;
+}
+
+.entity-row:hover {
+  border-color: var(--accent-outline);
+  background: var(--bg-hover);
+}
+
+.entity-row.is-selected {
+  border-color: rgba(255, 106, 0, 0.55);
+  background: rgba(255, 106, 0, 0.06);
+}
+
+.entity-row input[type="checkbox"] {
+  margin-top: 3px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.entity-row__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  margin-bottom: 4px;
+}
+
+.entity-row__desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.entity-row__caps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
 }
