@@ -1,18 +1,18 @@
 <!--
-PROTOTYPE SCREEN: V3-01 — Enable company building-blocks library
-BLOCKS: ProtoChrome, VersionSwitcher, RoleSwitcher, AppShell, SettingsLayout, LibraryEnableToggle, Button, Toast
-JOURNEY BEAT: Admin opt-in · empty catalog until blocks approved (unhappy path setup)
+PROTOTYPE SCREEN: V3-01 — Admin building-blocks settings (enable + approvals)
+BLOCKS: ProtoChrome, VersionSwitcher, RoleSwitcher, AppShell, SettingsLayout, LibraryEnableToggle, ApprovalQueue, Button, Toast
+JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revisited as V3-04)
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>V3-01 · Enable building-blocks library</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261006232500" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261006232500" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261006232500" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261006232500" />
+  <title>V3 · Building blocks settings</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006232900" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006232900" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006232900" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006232900" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -38,14 +38,14 @@ JOURNEY BEAT: Admin opt-in · empty catalog until blocks approved (unhappy path 
           <nav class="settings-nav">
             <div class="settings-nav__title">Settings</div>
             <a class="settings-nav-item is-active" href="01-enable-library.html?proto=v3">Building blocks</a>
-            <a class="settings-nav-item" href="04-approve-block.html?proto=v3">Block approvals</a>
           </nav>
           <section class="settings-panel">
             <div class="settings-panel__header">
-              <h2>Company building-blocks library</h2>
+              <h2>Company building blocks</h2>
               <p>
                 Org-owned <strong>tools</strong>, <strong>skills</strong>, and <strong>agents</strong> —
-                smaller units than full golden workflows. Public gallery stays discovery-only.
+                smaller units than full golden workflows. Enable the library, then approve
+                pending blocks before Members can use them.
               </p>
             </div>
 
@@ -68,24 +68,32 @@ JOURNEY BEAT: Admin opt-in · empty catalog until blocks approved (unhappy path 
               </div>
             </div>
 
-            <div class="lib-admin-keys">
-              <a class="lib-admin-key is-clickable" href="06-blocks-gallery.html?proto=v3&role=member">
-                <div class="lib-admin-key__label">Unhappy path</div>
-                <h3>Preview empty Member gallery</h3>
-                <p>After enable with no approved blocks — empty state + discovery note.</p>
-              </a>
-              <a class="lib-admin-key is-clickable" href="04-approve-block.html?proto=v3">
-                <div class="lib-admin-key__label">Admin key view</div>
-                <h3>Pending block approvals</h3>
-                <p>Submit ≠ publish — certify before Members can use a block.</p>
-              </a>
+            <div style="margin-top:28px" data-block="ApprovalQueue" id="approvals">
+              <div class="settings-panel__header" style="margin-bottom:16px">
+                <h2 style="font-size:18px">Block approvals</h2>
+                <p>
+                  Pending items are not visible to Members. Approve publishes to the
+                  building-blocks library.
+                </p>
+              </div>
+
+              <div class="lib-inventory-grid" id="inventory-stats"></div>
+
+              <div class="tabs">
+                <button type="button" class="tab is-active" data-tab="pending">Pending</button>
+                <button type="button" class="tab" data-tab="published">Published</button>
+              </div>
+              <div class="queue-list" id="queue-list"></div>
             </div>
 
             <div style="margin-top:24px" class="flex gap-3">
               <a class="btn btn--primary" href="02-builder-rails.html?proto=v3" id="next-builder">
                 Next: Build under rails →
               </a>
-              <a class="btn btn--ghost" href="06-blocks-gallery.html?proto=v3&role=member">Open gallery as Member</a>
+              <a class="btn btn--ghost" href="05-create-workflow.html?proto=v3&role=member" id="next-member">
+                Next: Create as Member →
+              </a>
+              <a class="btn btn--ghost" href="06-blocks-gallery.html?proto=v3&role=member">Open gallery</a>
             </div>
           </section>
         </div>
@@ -93,8 +101,8 @@ JOURNEY BEAT: Admin opt-in · empty catalog until blocks approved (unhappy path 
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261006232500"></script>
-  <script src="../../js/interactions.js?v=20261006232500"></script>
+  <script src="../../js/state.js?v=20261006232900"></script>
+  <script src="../../js/interactions.js?v=20261006232900"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -103,21 +111,167 @@ JOURNEY BEAT: Admin opt-in · empty catalog until blocks approved (unhappy path 
       if (ProtoState.get().role === "security" || ProtoState.get().role === "member") {
         ProtoState.setRole("admin");
       }
+      ProtoUI.applyRoleChrome();
 
-      function sync() {
+      const params = new URLSearchParams(window.location.search || "");
+      const beat = params.get("beat");
+      if (beat === "V3-04") {
+        const el = document.getElementById("approvals");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.getElementById("next-builder").classList.remove("btn--primary");
+        document.getElementById("next-builder").classList.add("btn--ghost");
+        document.getElementById("next-member").classList.remove("btn--ghost");
+        document.getElementById("next-member").classList.add("btn--primary");
+      }
+
+      let tab = "pending";
+
+      function syncToggle() {
         const on = ProtoState.get().libraryEnabled;
         const t = document.getElementById("library-toggle");
         t.classList.toggle("is-on", on);
         t.setAttribute("aria-pressed", on ? "true" : "false");
       }
+
+      function ownershipLine(t) {
+        const owner = t.owner || "—";
+        const contribs = (t.contributors || []).filter(function (c) {
+          return c && c !== owner;
+        });
+        return (
+          "Owner: " +
+          owner +
+          (contribs.length ? " · Contributors: " + contribs.join(", ") : "")
+        );
+      }
+
+      function renderStats() {
+        const all = ProtoState.getBlocks();
+        const golden = all.filter(function (t) {
+          return t.status === "golden";
+        }).length;
+        const pending = all.filter(function (t) {
+          return t.status === "pending";
+        }).length;
+        document.getElementById("inventory-stats").innerHTML =
+          '<div class="lib-inventory-stat"><div class="lib-inventory-stat__n">' +
+          golden +
+          '</div><div class="lib-inventory-stat__l">Published blocks</div></div>' +
+          '<div class="lib-inventory-stat"><div class="lib-inventory-stat__n">' +
+          pending +
+          '</div><div class="lib-inventory-stat__l">Pending approvals</div></div>' +
+          '<div class="lib-inventory-stat"><div class="lib-inventory-stat__n">' +
+          all.length +
+          '</div><div class="lib-inventory-stat__l">Total in pipeline</div></div>';
+      }
+
+      function renderQueue() {
+        renderStats();
+        const list = document.getElementById("queue-list");
+        if (tab === "pending") {
+          const pending = ProtoState.getPendingBlocks();
+          if (!pending.length) {
+            list.innerHTML =
+              '<p class="secondary">Queue clear — approve from a Builder submit, or continue to Member create.</p>';
+            return;
+          }
+          list.innerHTML = pending
+            .map(function (t) {
+              return (
+                '<div class="queue-row is-clickable">' +
+                "<div>" +
+                '<div class="queue-row__title">' +
+                t.name +
+                " " +
+                (ProtoUI.kindBadge ? ProtoUI.kindBadge(t.kind) : "") +
+                " " +
+                ProtoUI.statusBadge("pending") +
+                "</div>" +
+                '<div class="queue-row__meta">' +
+                ownershipLine(t) +
+                " · submitted " +
+                (t.submittedAt || t.updated) +
+                "</div>" +
+                '<div class="queue-row__meta">' +
+                (t.description || "") +
+                "</div>" +
+                (t.submitNote
+                  ? '<div class="queue-row__note">“' + t.submitNote + '”</div>'
+                  : "") +
+                "</div>" +
+                '<div class="queue-row__actions">' +
+                '<button type="button" class="btn btn--success btn--sm" data-approve="' +
+                t.id +
+                '">Approve publish</button>' +
+                '<button type="button" class="btn btn--secondary btn--sm" data-request-changes="' +
+                t.id +
+                '">Request changes</button>' +
+                '<button type="button" class="btn btn--danger btn--sm" data-reject="' +
+                t.id +
+                '">Reject</button>' +
+                "</div></div>"
+              );
+            })
+            .join("");
+        } else {
+          const existing = ProtoState.getGoldenBlocks();
+          if (!existing.length) {
+            list.innerHTML = '<p class="secondary">No published building blocks yet.</p>';
+            return;
+          }
+          list.innerHTML = existing
+            .map(function (t) {
+              return (
+                '<div class="queue-row is-clickable">' +
+                "<div><div class=\"queue-row__title\">" +
+                t.name +
+                " " +
+                (ProtoUI.kindBadge ? ProtoUI.kindBadge(t.kind) : "") +
+                " " +
+                ProtoUI.statusBadge(t.status) +
+                '</div><div class="queue-row__meta">' +
+                ownershipLine(t) +
+                " · " +
+                t.category +
+                " · v" +
+                t.version +
+                "</div></div>" +
+                '<div class="queue-row__actions">' +
+                '<a class="btn btn--secondary btn--sm" href="06-blocks-gallery.html?proto=v3">View in gallery</a>' +
+                "</div></div>"
+              );
+            })
+            .join("");
+        }
+      }
+
+      function render() {
+        syncToggle();
+        renderQueue();
+      }
+
+      document.querySelectorAll("[data-tab]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          tab = btn.getAttribute("data-tab");
+          document.querySelectorAll("[data-tab]").forEach(function (b) {
+            b.classList.toggle("is-active", b === btn);
+          });
+          renderQueue();
+        });
+      });
+
       document.getElementById("next-builder").addEventListener("click", function () {
         if (!ProtoState.get().libraryEnabled) {
           ProtoState.setLibraryEnabled(true);
         }
         ProtoState.setRole("builder");
       });
-      document.addEventListener("proto:rerender", sync);
-      sync();
+      document.getElementById("next-member").addEventListener("click", function () {
+        ProtoState.setRole("member");
+      });
+
+      document.addEventListener("proto:rerender", render);
+      render();
     })();
   </script>
 </body>

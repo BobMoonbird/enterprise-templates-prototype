@@ -26,7 +26,7 @@
       label: "Short · building blocks (V3)",
       shortLabel: "Short · V3",
       mapLabel: "Short · building blocks",
-      description: "Admin enable → Builder submit block → Approve → Member + AI/MCP rails",
+      description: "Admin settings (enable + approve) → Builder submit → Member + AI/MCP rails",
     },
   };
 
@@ -496,8 +496,8 @@
     {
       id: "V3-01",
       file: "v3/01-enable-library.html",
-      title: "Enable the company building-blocks library",
-      beat: "Tools · skills · agents — Admin opt-in",
+      title: "Enable library & approve building blocks",
+      beat: "One Admin settings page — opt-in + pending queue",
       role: "admin",
     },
     {
@@ -516,9 +516,9 @@
     },
     {
       id: "V3-04",
-      file: "v3/04-approve-block.html",
+      file: "v3/01-enable-library.html",
       title: "Approve a pending building block",
-      beat: "Approve → published company block",
+      beat: "Same Admin page — Approve → published company block",
       role: "admin",
     },
     {
@@ -570,7 +570,7 @@
 
   /** V3 map — no Security section */
   const DEMO_MAP_SECTIONS_V3 = [
-    { role: "admin", job: "Enable building-blocks library · approve pending company blocks" },
+    { role: "admin", job: "Enable building-blocks library · approve pending blocks (one settings page)" },
     { role: "builder", job: "Build under rails · mark as company building block (pending)" },
     { role: "member", job: "Compose from approved blocks · AI + MCP same create/copy rails" },
   ];

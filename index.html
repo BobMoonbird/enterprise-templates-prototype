@@ -10,10 +10,10 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Enterprise templates · demo map</title>
-  <link rel="stylesheet" href="css/tokens.css?v=20261006232500" />
-  <link rel="stylesheet" href="css/base.css?v=20261006232500" />
-  <link rel="stylesheet" href="css/components.css?v=20261006232500" />
-  <link rel="stylesheet" href="css/screens.css?v=20261006232500" />
+  <link rel="stylesheet" href="css/tokens.css?v=20261006232900" />
+  <link rel="stylesheet" href="css/base.css?v=20261006232900" />
+  <link rel="stylesheet" href="css/components.css?v=20261006232900" />
+  <link rel="stylesheet" href="css/screens.css?v=20261006232900" />
 </head>
 <body>
   <main class="demo-map" data-block="AppShell">
@@ -52,8 +52,8 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
     </section>
   </main>
 
-  <script src="js/state.js?v=20261006232500"></script>
-  <script src="js/interactions.js?v=20261006232500"></script>
+  <script src="js/state.js?v=20261006232900"></script>
+  <script src="js/interactions.js?v=20261006232900"></script>
   <script>
     (function () {
       const COPY = {
@@ -87,14 +87,13 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
           hero:
             "<strong>Short prototype (V3)</strong> — go deep on one Must (company building-blocks library: " +
             "tools / skills / agents) + one Should (create/copy rails across UI, AI, MCP). " +
-            "Security allowlist stays in Full (V2) only. Path: Admin enable → Builder submit → Approve → Member compose.",
+            "Security allowlist stays in Full (V2) only. Path: Admin settings (enable + approve) → Builder → Member compose.",
           startLabel: "Start short path",
           screensTitle: "Short spine by job / role",
           primary: [
             "v3/01-enable-library.html",
             "v3/02-builder-rails.html",
             "v3/03-mark-company-block.html",
-            "v3/04-approve-block.html",
             "v3/05-create-workflow.html",
             "v3/06-blocks-gallery.html",
             "v3/07-compose-canvas.html",
@@ -135,14 +134,20 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
 
         function cardHtml(s) {
           const isPrimary = cfg.primary.indexOf(s.file) >= 0;
+          const base = (s.file || "").split("?")[0];
+          const dupes = ProtoState.DEMO_PATH.filter(function (x) {
+            return (x.file || "").split("?")[0] === base;
+          });
+          let href = "screens/" + base + "?proto=" + version;
+          if (dupes.length > 1 && s.id) {
+            href += "&beat=" + encodeURIComponent(s.id);
+          }
           return (
             '<a class="demo-map-card is-clickable' +
             (isPrimary ? " is-primary" : "") +
             (s.spur ? " is-spur" : "") +
-            '" href="screens/' +
-            s.file +
-            "?proto=" +
-            version +
+            '" href="' +
+            href +
             '" data-set-role="' +
             (s.role || "") +
             '">' +

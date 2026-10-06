@@ -86,10 +86,10 @@ Spurs: **07** AI, **09** MCP, **10** / **10b** skills/blocks.
 
 | File | Beat |
 |------|------|
-| `screens/v3/01-enable-library.html` | Admin enable library |
+| `screens/v3/01-enable-library.html` | Admin settings: enable + approvals (one page; also V3-04 beat) |
 | `screens/v3/02-builder-rails.html` | Builder under rails |
 | `screens/v3/03-mark-company-block.html` | Submit ≠ publish |
-| `screens/v3/04-approve-block.html` | Approve pending block |
+| `screens/v3/04-approve-block.html` | Redirect → combined Admin settings |
 | `screens/v3/05-create-workflow.html` | Member create rails |
 | `screens/v3/06-blocks-gallery.html` | Gallery + empty state |
 | `screens/v3/07-compose-canvas.html` | Suggested blocks + provenance |

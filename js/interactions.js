@@ -68,9 +68,42 @@
   function findPathIndex(path) {
     const rel = screenPath();
     const file = screenFile();
-    return path.findIndex(function (s) {
-      return s.file === rel || s.file === file || s.file.split("/").pop() === file;
+    let beat = "";
+    try {
+      beat = new URLSearchParams(window.location.search || "").get("beat") || "";
+    } catch (e) {
+      /* ignore */
+    }
+    if (beat) {
+      const byId = path.findIndex(function (s) {
+        return s.id === beat;
+      });
+      if (byId >= 0) return byId;
+    }
+    const matches = [];
+    path.forEach(function (s, i) {
+      const base = (s.file || "").split("?")[0];
+      if (base === rel || base === file || base.split("/").pop() === file) {
+        matches.push(i);
+      }
     });
+    if (!matches.length) return -1;
+    return matches[0];
+  }
+
+  /** Build screen href; pass beat= when the same file appears twice in DEMO_PATH */
+  function screenHref(entry, version) {
+    const prefix = pathPrefix();
+    const base = (entry.file || "").split("?")[0];
+    let href = prefix + "screens/" + base + "?proto=" + version;
+    const path = ProtoState.DEMO_PATH || [];
+    const dupes = path.filter(function (s) {
+      return (s.file || "").split("?")[0] === base;
+    });
+    if (dupes.length > 1 && entry.id) {
+      href += "&beat=" + encodeURIComponent(entry.id);
+    }
+    return href;
   }
 
   /* ── Toasts ── */
@@ -162,20 +195,12 @@
         ? ""
         : prev
           ? '<a class="proto-chrome__btn" href="' +
-            prefix +
-            "screens/" +
-            prev.file +
-            "?proto=" +
-            version +
+            screenHref(prev, version) +
             '">← Back</a>'
           : '<a class="proto-chrome__btn" href="' + mapHref + '">← Map</a>') +
       (next
         ? '<a class="proto-chrome__btn proto-chrome__btn--primary" href="' +
-          prefix +
-          "screens/" +
-          next.file +
-          "?proto=" +
-          version +
+          screenHref(next, version) +
           '">Next →</a>'
         : "") +
       (onMap ? "" : '<a class="proto-chrome__map" href="' + mapHref + '">Demo map</a>') +

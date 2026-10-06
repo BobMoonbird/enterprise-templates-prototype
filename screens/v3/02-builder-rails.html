@@ -1,6 +1,6 @@
 <!--
 PROTOTYPE SCREEN: V3-02 — Build reusable tool/skill/agent under rails
-BLOCKS: ProtoChrome, WorkflowEditorChrome, NodePalette, PolicyRail, LifecycleBanner, Button, Menu, Modal, Toast
+BLOCKS: ProtoChrome, WorkflowEditorChrome, NodePalette, Button, Menu, Modal, Toast
 JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
 -->
 <!DOCTYPE html>
@@ -9,24 +9,13 @@ JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-02 · Build under rails</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261006232500" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261006232500" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261006232500" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261006232500" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006232900" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006232900" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006232900" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006232900" />
 </head>
 <body>
   <div data-block="WorkflowEditorChrome">
-    <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner">
-      <span class="badge badge--draft">Draft</span>
-      <span>Okta user resolve · reusable skill candidate — not yet a company block</span>
-    </div>
-    <div class="policy-rail" data-block="PolicyRail">
-      <span class="policy-rail__mark">Rails</span>
-      <span>
-        Create/copy policy: prefer company building blocks. Out-of-policy units soft-block
-        with request access — same on UI · AI · MCP.
-      </span>
-    </div>
     <header class="editor-topbar">
       <a class="icon-btn" href="../../index.html?proto=v3" title="Map" data-block="IconButton">←</a>
       <span class="editor-topbar__name">Okta user resolve</span>
@@ -38,17 +27,16 @@ JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
             Submit ▾
           </button>
           <div class="menu" id="submit-menu" data-block="Menu" style="right:0;top:36px;width:320px">
-            <button type="button" class="menu-item is-accent" id="menu-mark-block">
+            <button type="button" class="menu-item" id="menu-publish">
               <div>
-                <div class="menu-item__title">Mark as company building block</div>
-                <div class="menu-item__desc">Submit for Admin approval — not live until approved</div>
+                <div class="menu-item__title">Publish</div>
+                <div class="menu-item__desc">Publish this workflow for your team — not a company building block</div>
               </div>
             </button>
-            <div class="menu-divider"></div>
-            <button type="button" class="menu-item" disabled style="opacity:0.4;pointer-events:none">
+            <button type="button" class="menu-item is-accent" id="menu-save-block">
               <div>
-                <div class="menu-item__title">Publish to community</div>
-                <div class="menu-item__desc">Blocked for enterprise instance</div>
+                <div class="menu-item__title">Save as building block</div>
+                <div class="menu-item__desc">Submit for Admin approval — not live until approved</div>
               </div>
             </button>
           </div>
@@ -86,8 +74,8 @@ JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261006232500"></script>
-  <script src="../../js/interactions.js?v=20261006232500"></script>
+  <script src="../../js/state.js?v=20261006232900"></script>
+  <script src="../../js/interactions.js?v=20261006232900"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -152,7 +140,14 @@ JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
       document.addEventListener("click", function () {
         menu.classList.remove("is-open");
       });
-      document.getElementById("menu-mark-block").addEventListener("click", function () {
+      document.getElementById("menu-publish").addEventListener("click", function () {
+        menu.classList.remove("is-open");
+        ProtoUI.toast(
+          "Published workflow “Okta user resolve” to your team — this is not a company building block",
+          "success"
+        );
+      });
+      document.getElementById("menu-save-block").addEventListener("click", function () {
         window.location.href = "03-mark-company-block.html?proto=v3";
       });
 
