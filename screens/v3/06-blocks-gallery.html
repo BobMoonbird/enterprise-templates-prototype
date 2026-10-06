@@ -101,7 +101,9 @@ JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/ag
             return (
               b.status === "golden" ||
               ((b.owner === "You" || b.author === "You") &&
-                (b.status === "pending" || b.status === "draft"))
+                (b.status === "pending" ||
+                  b.status === "draft" ||
+                  b.status === "changes"))
             );
           });
         }
