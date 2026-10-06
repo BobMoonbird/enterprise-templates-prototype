@@ -1,0 +1,260 @@
+<!--
+PROTOTYPE SCREEN: 00c — Notify owners of blocked capabilities
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, SettingsLayout, OwnerNotifyPanel, Button, Toast
+JOURNEY BEAT: After confirm — who was notified, sample notification copy, links to affected workflows
+MIRO: Owners must learn their workflows contain blocked integrations and will break
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>00c · Notify owners of blocked capabilities</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20261006230000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item is-active" href="00-security-allowlist.html"><span class="nav-item__icon">⚙</span> Settings</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Settings · Owner notifications</strong>
+        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Security</span></span>
+      </header>
+      <div class="app-shell__content">
+        <div data-block="SettingsLayout">
+          <nav class="settings-nav">
+            <div class="settings-nav__title">Security</div>
+            <a class="settings-nav-item is-active" href="00-security-allowlist.html">Capability allowlist</a>
+            <a class="settings-nav-item" href="01-admin-roles.html">Roles</a>
+            <a class="settings-nav-item" href="01b-library-enable.html">Company library</a>
+            <a class="settings-nav-item" href="03b-approval-queue.html">Template approvals</a>
+          </nav>
+          <section class="settings-panel" data-block="OwnerNotifyPanel">
+            <div class="impact-breadcrumb">
+              <a class="is-clickable" href="00-security-allowlist.html">Capability allowlist</a>
+              <span class="secondary">/</span>
+              <a class="is-clickable" href="00b-block-impact-review.html">Impact review</a>
+              <span class="secondary">/</span>
+              <span>Notify owners</span>
+            </div>
+
+            <div class="settings-panel__header">
+              <h2>Notify owners of blocked capabilities</h2>
+              <p>
+                Owners whose workflows use the blocked integration / domain were notified
+                that those workflows will stop executing until they replace the capability
+                or request an exception.
+              </p>
+            </div>
+
+            <div class="notify-banner" id="notify-banner">
+              <span class="notify-banner__check">✓</span>
+              <div>
+                <div class="notify-banner__title" id="notify-title">Capability blocked</div>
+                <div class="secondary" id="notify-sub">Notifications queued</div>
+              </div>
+            </div>
+
+            <div class="impact-stats" id="notify-stats"></div>
+
+            <div class="impact-section">
+              <h3>Who was notified</h3>
+              <div class="notify-owner-list" id="notify-owners"></div>
+            </div>
+
+            <div class="impact-section">
+              <h3>Sample notification</h3>
+              <div class="notify-sample" data-block="NotificationPreview">
+                <div class="notify-sample__channel">Email + in-app · Automation CoE digest</div>
+                <div class="notify-sample__subject" id="sample-subject">
+                  [n8n] Your workflows use a blocked capability
+                </div>
+                <div class="notify-sample__body" id="sample-body"></div>
+              </div>
+            </div>
+
+            <div class="impact-section">
+              <h3>Affected workflows</h3>
+              <ul class="notify-wf-list" id="notify-workflows"></ul>
+            </div>
+
+            <div class="impact-actions" data-block="Button">
+              <a class="btn btn--secondary" href="00-security-allowlist.html">Back to allowlist</a>
+              <a class="btn btn--primary" href="01-admin-roles.html">Next: Assign roles →</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20261006230000"></script>
+  <script src="../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      ProtoState.setRole("security");
+
+      function ensureAction() {
+        let action = ProtoState.getLastBlockAction();
+        if (action) return action;
+        // Demo map / ProtoChrome entry without confirming — seed Slack impact
+        ProtoState.ensureDemoPendingBlock();
+        const pending = ProtoState.getPendingBlock();
+        const workflows = ProtoState.getBlockImpact();
+        const owners = ProtoState.summarizeImpactOwners(workflows);
+        if (pending && !pending.demoReplay) {
+          return ProtoState.confirmPendingBlock();
+        }
+        const s = ProtoState.get();
+        s.lastBlockAction = {
+          kind: (pending && pending.kind) || "capability",
+          id: (pending && pending.id) || "cap-slack",
+          label: (pending && pending.label) || "Slack",
+          icon: (pending && pending.icon) || "💬",
+          category: (pending && pending.category) || "Communication",
+          workflows: workflows,
+          notifiedOwners: owners,
+          notifiedAt: new Date().toISOString(),
+          policyRef: "SEC-CAP-BLOCK",
+          demoReplay: true,
+        };
+        s.pendingBlock = null;
+        ProtoState.persist();
+        return s.lastBlockAction;
+      }
+
+      function render() {
+        const action = ensureAction();
+        if (!action) return;
+
+        const kindLabel = action.kind === "domain" ? "HTTP domain" : "capability";
+        const when = action.notifiedAt
+          ? new Date(action.notifiedAt).toLocaleString()
+          : "just now";
+
+        document.getElementById("notify-title").textContent =
+          (action.icon ? action.icon + " " : "") + action.label + " blocked";
+        document.getElementById("notify-sub").textContent =
+          kindLabel +
+          " removed from allowlist · " +
+          (action.notifiedOwners || []).length +
+          " owners notified · " +
+          when +
+          (action.demoReplay ? " · demo snapshot" : "");
+
+        document.getElementById("notify-stats").innerHTML =
+          '<div class="impact-stat impact-stat--danger">' +
+          '<div class="impact-stat__n">' +
+          (action.workflows || []).length +
+          "</div>" +
+          '<div class="impact-stat__l">Workflows impacted</div>' +
+          "</div>" +
+          '<div class="impact-stat">' +
+          '<div class="impact-stat__n">' +
+          (action.notifiedOwners || []).length +
+          "</div>" +
+          '<div class="impact-stat__l">Owners notified</div>' +
+          "</div>" +
+          '<div class="impact-stat">' +
+          '<div class="impact-stat__n">' +
+          (action.policyRef || "SEC") +
+          "</div>" +
+          '<div class="impact-stat__l">Policy reference</div>' +
+          "</div>";
+
+        document.getElementById("notify-owners").innerHTML = (action.notifiedOwners || [])
+          .map(function (o) {
+            return (
+              '<div class="notify-owner-row is-clickable">' +
+              "<div>" +
+              "<strong>" +
+              o.owner +
+              "</strong>" +
+              '<div class="secondary" style="font-size:12px">' +
+              (o.email || "") +
+              (o.team ? " · " + o.team : "") +
+              "</div>" +
+              "</div>" +
+              '<div class="notify-owner-row__meta">' +
+              '<span class="badge badge--allowed">Notified</span>' +
+              '<span class="secondary">' +
+              o.workflows.length +
+              " wf</span>" +
+              "</div>" +
+              "</div>"
+            );
+          })
+          .join("");
+
+        const firstOwner =
+          (action.notifiedOwners && action.notifiedOwners[0] && action.notifiedOwners[0].owner) ||
+          "workflow owner";
+        const wfNames = (action.workflows || [])
+          .slice(0, 3)
+          .map(function (w) {
+            return "“" + w.name + "”";
+          })
+          .join(", ");
+
+        document.getElementById("sample-subject").textContent =
+          "[n8n] Your workflows use a blocked " + kindLabel + ": " + action.label;
+
+        document.getElementById("sample-body").innerHTML =
+          "<p>Hi " +
+          firstOwner.split(" ")[0] +
+          ",</p>" +
+          "<p>Security blocked <strong>" +
+          action.label +
+          "</strong> on the Acme n8n instance (" +
+          (action.policyRef || "policy") +
+          ").</p>" +
+          "<p>These workflows contain that " +
+          kindLabel +
+          " and <strong>will stop executing</strong> on the next run until you replace it or request an exception:</p>" +
+          "<p>" +
+          wfNames +
+          ((action.workflows || []).length > 3 ? "…" : "") +
+          "</p>" +
+          "<p>Open the workflows → replace the blocked integration / domain, or request access via #security-automation.</p>" +
+          '<p class="secondary" style="margin-bottom:0">— Automation CoE · sent automatically after allowlist change</p>';
+
+        document.getElementById("notify-workflows").innerHTML = (action.workflows || [])
+          .map(function (w) {
+            return (
+              "<li class=\"notify-wf-item is-clickable\">" +
+              "<strong>" +
+              w.name +
+              "</strong>" +
+              '<span class="secondary"> · ' +
+              w.owner +
+              " · " +
+              w.status +
+              "</span>" +
+              "</li>"
+            );
+          })
+          .join("");
+      }
+
+      document.addEventListener("proto:rerender", render);
+      render();
+      ProtoUI.toast("Owners notified", "success");
+    })();
+  </script>
+</body>
+</html>

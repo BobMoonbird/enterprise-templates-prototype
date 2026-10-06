@@ -11,10 +11,10 @@ MIRO: Capability allow-list = tools to integrate with + domains for HTTP (not ra
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>00 · Set approved capabilities for the instance</title>
-  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
-  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
-  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
-  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20261006230000" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -52,6 +52,7 @@ MIRO: Capability allow-list = tools to integrate with + domains for HTTP (not ra
                 Prefer an allow-list of <strong>tools to integrate with</strong> and
                 <strong>domains for HTTP Request</strong> — not every n8n node.
                 Enforced across UI, API, and MCP.
+                <strong>Block</strong> opens an impact review before the change applies.
               </p>
             </div>
 
@@ -136,8 +137,8 @@ MIRO: Capability allow-list = tools to integrate with + domains for HTTP (not ra
     </div>
   </div>
 
-  <script src="../js/state.js?v=20260929164000"></script>
-  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script src="../js/state.js?v=20261006230000"></script>
+  <script src="../js/interactions.js?v=20261006230000"></script>
   <script>
     (function () {
       let blockedOnly = false;
@@ -240,22 +241,38 @@ MIRO: Capability allow-list = tools to integrate with + domains for HTTP (not ra
       document.getElementById("allowlist-body").addEventListener("click", function (e) {
         const btn = e.target.closest("[data-toggle-node]");
         if (!btn) return;
-        const node = ProtoState.toggleNodeAllowed(btn.getAttribute("data-toggle-node"));
-        ProtoUI.toast(
-          (node.allowed ? "Allowed: " : "Blocked: ") + node.name,
-          node.allowed ? "success" : "warning"
-        );
+        const id = btn.getAttribute("data-toggle-node");
+        const node = ProtoState.get().nodes.find(function (n) {
+          return n.id === id;
+        });
+        if (!node) return;
+        // Blocking an allowed capability → impact review (do not apply yet)
+        if (node.allowed) {
+          ProtoState.beginBlockReview("capability", id);
+          window.location.href = "00b-block-impact-review.html";
+          return;
+        }
+        // Allowing a blocked capability is immediate
+        ProtoState.toggleNodeAllowed(id);
+        ProtoUI.toast("Allowed: " + node.name, "success");
         render();
       });
 
       document.getElementById("domain-body").addEventListener("click", function (e) {
         const btn = e.target.closest("[data-toggle-domain]");
         if (!btn) return;
-        const domain = ProtoState.toggleDomainAllowed(btn.getAttribute("data-toggle-domain"));
-        ProtoUI.toast(
-          (domain.allowed ? "Allowed: " : "Blocked: ") + domain.pattern,
-          domain.allowed ? "success" : "warning"
-        );
+        const id = btn.getAttribute("data-toggle-domain");
+        const domain = ProtoState.getDomains().find(function (d) {
+          return d.id === id;
+        });
+        if (!domain) return;
+        if (domain.allowed) {
+          ProtoState.beginBlockReview("domain", id);
+          window.location.href = "00b-block-impact-review.html";
+          return;
+        }
+        ProtoState.toggleDomainAllowed(id);
+        ProtoUI.toast("Allowed: " + domain.pattern, "success");
         render();
       });
 

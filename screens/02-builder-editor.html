@@ -10,10 +10,10 @@ MIRO: Tools + HTTP domains enforced in palette; core nodes always on; blocked â†
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>02 Â· Build a workflow under policy rails</title>
-  <link rel="stylesheet" href="../css/tokens.css?v=20260929164000" />
-  <link rel="stylesheet" href="../css/base.css?v=20260929164000" />
-  <link rel="stylesheet" href="../css/components.css?v=20260929164000" />
-  <link rel="stylesheet" href="../css/screens.css?v=20260929164000" />
+  <link rel="stylesheet" href="../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20261006230000" />
 </head>
 <body>
   <div data-block="WorkflowEditorChrome">
@@ -36,15 +36,24 @@ MIRO: Tools + HTTP domains enforced in palette; core nodes always on; blocked â†
       <span class="secondary" style="font-size:12px;margin-left:8px">Acting as <span data-role-label>Builder</span></span>
       <div class="editor-topbar__actions">
         <button type="button" class="btn btn--ghost btn--sm">Share</button>
+        <a class="btn btn--secondary btn--sm is-clickable" href="10b-add-skill-block.html" id="btn-add-skill">
+          Add skill / block
+        </a>
         <div class="relative role-show-submit">
           <button type="button" class="btn btn--primary btn--sm" id="btn-submit-menu" data-block="Button">
             Submit â–¾
           </button>
-          <div class="menu" id="submit-menu" data-block="Menu" style="right:0;top:36px;width:280px">
+          <div class="menu" id="submit-menu" data-block="Menu" style="right:0;top:36px;width:300px">
             <button type="button" class="menu-item is-accent" id="menu-submit-internal">
               <div>
                 <div class="menu-item__title">Submit as internal template</div>
                 <div class="menu-item__desc">Request CoE approval â†’ company library (not community publish)</div>
+              </div>
+            </button>
+            <button type="button" class="menu-item" id="menu-save-skill">
+              <div>
+                <div class="menu-item__title">Save as skill or block</div>
+                <div class="menu-item__desc">Versioned company unit with fixed I/O â€” own it like code</div>
               </div>
             </button>
             <div class="menu-divider"></div>
@@ -87,12 +96,13 @@ MIRO: Tools + HTTP domains enforced in palette; core nodes always on; blocked â†
           <div class="canvas-node__type">Finance Â· allowed</div>
           <div class="canvas-node__name">NetSuite</div>
         </div>
+        <div id="inserted-skill-slot" hidden></div>
       </div>
     </div>
   </div>
 
-  <script src="../js/state.js?v=20260929164000"></script>
-  <script src="../js/interactions.js?v=20260929164000"></script>
+  <script src="../js/state.js?v=20261006230000"></script>
+  <script src="../js/interactions.js?v=20261006230000"></script>
   <script>
     (function () {
       // Prefer builder for this beat
@@ -174,6 +184,41 @@ MIRO: Tools + HTTP domains enforced in palette; core nodes always on; blocked â†
       document.getElementById("menu-submit-internal").addEventListener("click", function () {
         window.location.href = "03-submit-as-template.html";
       });
+      document.getElementById("menu-save-skill").addEventListener("click", function () {
+        window.location.href = "10-save-as-skill-block.html";
+      });
+
+      // Member can still add skills/blocks (copy rail) â€” show Add even when Submit is hidden
+      const role = ProtoState.getRole();
+      if (role && role.id === "member") {
+        const addBtn = document.getElementById("btn-add-skill");
+        if (addBtn) addBtn.classList.add("is-clickable");
+      }
+
+      function renderInsertedSkill() {
+        const item = ProtoState.getLastInsertedSkill && ProtoState.getLastInsertedSkill();
+        const slot = document.getElementById("inserted-skill-slot");
+        if (!item || !slot) return;
+        slot.hidden = false;
+        slot.innerHTML =
+          '<div class="canvas-wire" style="left:880px;top:148px;width:60px"></div>' +
+          '<div class="canvas-node canvas-node--skill" style="left:940px;top:100px">' +
+          '<div class="canvas-node__type">' +
+          (item.kind === "block" ? "Block" : "Skill") +
+          " Â· v" +
+          item.version +
+          "</div>" +
+          '<div class="canvas-node__name">' +
+          item.name +
+          "</div>" +
+          '<div class="canvas-node__owner">Owner ' +
+          item.owner +
+          "</div>" +
+          "</div>";
+        if (/[?&]inserted=1/.test(location.search)) {
+          ProtoUI.toast("Pinned " + item.kind + " @ v" + item.version + " on canvas", "success");
+        }
+      }
 
       document.getElementById("palette-list").addEventListener("click", function (e) {
         const add = e.target.closest("[data-add-node]");
@@ -189,6 +234,7 @@ MIRO: Tools + HTTP domains enforced in palette; core nodes always on; blocked â†
 
       document.addEventListener("proto:rerender", renderPalette);
       renderPalette();
+      renderInsertedSkill();
     })();
   </script>
 </body>

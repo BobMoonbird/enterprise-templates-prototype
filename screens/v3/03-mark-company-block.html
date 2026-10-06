@@ -1,0 +1,146 @@
+<!--
+PROTOTYPE SCREEN: V3-03 — Mark as company building block
+BLOCKS: ProtoChrome, AppShell, LifecycleBanner, Button, Toast
+JOURNEY BEAT: Submit ≠ publish — toast makes clear not live until Admin approves
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3-03 · Mark as company building block</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006230000" />
+</head>
+<body class="screen-submit">
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="06-blocks-gallery.html?proto=v3"><span class="nav-item__icon">◈</span> Building blocks</a>
+        <a class="nav-item is-active" href="02-builder-rails.html?proto=v3"><span class="nav-item__icon">✎</span> Editor</a>
+      </nav>
+      <div class="app-shell__footer">Short path · V3</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Mark as company building block</strong>
+        <a class="btn btn--ghost btn--sm" href="02-builder-rails.html?proto=v3">← Back to editor</a>
+      </header>
+      <div class="app-shell__content">
+        <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner" style="border-radius:8px;margin-bottom:24px;border:1px solid var(--border);max-width:560px">
+          <span class="badge badge--draft">Not published</span>
+          <span>
+            Submitting creates a <strong>Pending</strong> company block — Members cannot use it
+            until an Admin approves.
+          </span>
+        </div>
+
+        <div class="submit-vs-publish" style="margin-bottom:24px">
+          <div class="contrast-card contrast-card--good">
+            <strong>Mark as company building block</strong>
+            Sends to Admin queue → published / request changes. Stays inside Acme.
+          </div>
+          <div class="contrast-card contrast-card--muted">
+            <strong>Live for Members</strong>
+            Only after Admin approve. Submit ≠ publish.
+          </div>
+        </div>
+
+        <form id="submit-form" class="submit-form" data-block="Modal">
+          <div class="submit-form__fields">
+            <div class="field">
+              <label>Type</label>
+              <div class="kind-toggle" role="group" aria-label="Block kind">
+                <button type="button" class="kind-toggle__btn" data-kind="tool">Tool</button>
+                <button type="button" class="kind-toggle__btn is-active" data-kind="skill">Skill</button>
+                <button type="button" class="kind-toggle__btn" data-kind="agent">Agent</button>
+              </div>
+              <input type="hidden" id="bb-kind" value="skill" />
+            </div>
+            <div class="field">
+              <label for="bb-name">Name</label>
+              <input id="bb-name" value="Resolve user from Okta" required />
+            </div>
+            <div class="field">
+              <label for="bb-desc">Description</label>
+              <textarea id="bb-desc" required>Given a work email, fetch Okta profile and return display_name + department for downstream workflows.</textarea>
+            </div>
+            <div class="field">
+              <label for="bb-owner">Owner</label>
+              <input id="bb-owner" value="You" required />
+            </div>
+            <div class="field">
+              <label for="bb-cat">Category</label>
+              <select id="bb-cat">
+                <option>Identity</option>
+                <option>Support</option>
+                <option>Finance</option>
+                <option>Ops</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="bb-note">Note to Admin</label>
+              <textarea id="bb-note">Reusable skill candidate — fixed I/O, Okta only.</textarea>
+            </div>
+          </div>
+          <div class="submit-form__actions">
+            <a class="btn btn--ghost" href="02-builder-rails.html?proto=v3">Cancel</a>
+            <button type="submit" class="btn btn--primary" data-block="Button">Submit for approval</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/state.js?v=20261006230000"></script>
+  <script src="../../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      if (ProtoState.getProtoVersion() !== "v3") {
+        ProtoState.setProtoVersion("v3", { reload: false });
+      }
+      ProtoState.setRole("builder");
+
+      document.querySelectorAll("[data-kind]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          document.querySelectorAll("[data-kind]").forEach(function (b) {
+            b.classList.toggle("is-active", b === btn);
+          });
+          document.getElementById("bb-kind").value = btn.getAttribute("data-kind");
+        });
+      });
+
+      document.getElementById("submit-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        ProtoState.submitCompanyBlock({
+          kind: document.getElementById("bb-kind").value,
+          name: document.getElementById("bb-name").value,
+          description: document.getElementById("bb-desc").value,
+          category: document.getElementById("bb-cat").value,
+          owner: document.getElementById("bb-owner").value,
+          note: document.getElementById("bb-note").value,
+          caps: ["Okta"],
+        });
+        if (!ProtoState.get().libraryEnabled) {
+          ProtoState.setLibraryEnabled(true);
+        }
+        sessionStorage.setItem(
+          "proto-flash",
+          JSON.stringify({
+            message: "Submitted as Pending — not live for Members until Admin approves",
+            type: "warning",
+          })
+        );
+        window.location.href = "04-approve-block.html?proto=v3";
+      });
+    })();
+  </script>
+</body>
+</html>

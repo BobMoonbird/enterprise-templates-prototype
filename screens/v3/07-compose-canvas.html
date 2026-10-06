@@ -1,0 +1,178 @@
+<!--
+PROTOTYPE SCREEN: V3-07 — Compose with suggested company blocks
+BLOCKS: ProtoChrome, AppShell, WorkflowEditorChrome, ProvenanceChip, Button
+JOURNEY BEAT: Suggested blocks + provenance on canvas
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3-07 · Compose with company blocks</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006230000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="06-blocks-gallery.html?proto=v3"><span class="nav-item__icon">◈</span> Building blocks</a>
+        <a class="nav-item is-active" href="07-compose-canvas.html?proto=v3"><span class="nav-item__icon">✎</span> Editor</a>
+      </nav>
+      <div class="app-shell__footer">Short path · V3</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="editor-topbar" style="border-bottom:1px solid var(--border);background:var(--bg-panel)">
+        <a class="icon-btn" href="06-blocks-gallery.html?proto=v3" data-block="IconButton">←</a>
+        <span class="editor-topbar__name" id="wf-name">Support triage compose</span>
+        <span id="provenance-slot"></span>
+        <div class="editor-topbar__actions">
+          <a class="btn btn--ghost btn--sm" href="08-ai-assist.html?proto=v3">AI assist</a>
+          <button type="button" class="btn btn--secondary btn--sm">Execute</button>
+        </div>
+      </header>
+      <div class="app-shell__content">
+        <div class="result-stage">
+          <div class="result-hero">
+            <div class="badge badge--golden">Composed from company blocks</div>
+            <h1>Canvas with suggested building blocks</h1>
+            <p class="secondary">
+              Suggested company units appear below — click to pin. Provenance shows owner + version.
+            </p>
+            <p class="lib-provenance-meta" id="result-owner"></p>
+          </div>
+
+          <div class="v3-suggest-row" id="suggest-row"></div>
+
+          <div class="result-canvas-stub" data-block="WorkflowEditorChrome" id="canvas" style="margin-top:20px;min-height:280px;position:relative">
+            <div class="canvas-node" style="left:60px;top:90px">
+              <div class="canvas-node__type">Trigger</div>
+              <div class="canvas-node__name">Slack Trigger</div>
+            </div>
+            <div class="canvas-wire" style="left:200px;top:118px;width:70px"></div>
+            <div class="canvas-node" style="left:270px;top:90px">
+              <div class="canvas-node__type">Core</div>
+              <div class="canvas-node__name">IF</div>
+            </div>
+            <div id="block-slot"></div>
+          </div>
+
+          <div class="result-actions">
+            <a class="btn btn--primary" href="08-ai-assist.html?proto=v3">Same rails via AI →</a>
+            <a class="btn btn--secondary" href="09-mcp.html?proto=v3">Same rails via MCP →</a>
+            <a class="btn btn--ghost" href="../../index.html?proto=v3">Demo map</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/state.js?v=20261006230000"></script>
+  <script src="../../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      if (ProtoState.getProtoVersion() !== "v3") {
+        ProtoState.setProtoVersion("v3", { reload: false });
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const blockId = params.get("block");
+      let active = ProtoState.getLastInsertedBlock() || (blockId ? ProtoState.getBlock(blockId) : null);
+
+      if (!ProtoState.getGoldenBlocks().length) {
+        ProtoState.ensureDemoBlocks();
+      }
+
+      if (!active) {
+        active = ProtoState.getGoldenBlocks()[0];
+        if (active) ProtoState.insertBlockIntoWorkflow(active.id);
+        active = ProtoState.getLastInsertedBlock() || active;
+      } else if (blockId && (!active || active.id !== blockId)) {
+        ProtoState.insertBlockIntoWorkflow(blockId);
+        active = ProtoState.getLastInsertedBlock();
+      }
+
+      function renderProvenance(b) {
+        const slot = document.getElementById("provenance-slot");
+        const ownerEl = document.getElementById("result-owner");
+        if (!b) {
+          slot.innerHTML = "";
+          ownerEl.textContent = "";
+          return;
+        }
+        slot.innerHTML =
+          '<span class="provenance-chip" data-block="ProvenanceChip">From company ' +
+          (b.kind || "block") +
+          " · v" +
+          b.version +
+          "</span>";
+        ownerEl.textContent =
+          "Owner: " + (b.owner || "—") + " · pinned version v" + b.version;
+        document.getElementById("wf-name").textContent = "Compose · " + b.name;
+      }
+
+      function renderSlot(b) {
+        const slot = document.getElementById("block-slot");
+        if (!b) {
+          slot.innerHTML = "";
+          return;
+        }
+        slot.innerHTML =
+          '<div class="canvas-wire" style="left:410px;top:118px;width:70px"></div>' +
+          '<div class="canvas-node canvas-node--gated" style="left:480px;top:90px">' +
+          '<div class="canvas-node__type">Company · ' +
+          (b.kind || "block") +
+          "</div>" +
+          '<div class="canvas-node__name">' +
+          b.name +
+          "</div>" +
+          '<div class="secondary" style="font-size:10px;margin-top:4px">v' +
+          b.version +
+          " · " +
+          (b.owner || "") +
+          "</div></div>";
+      }
+
+      function renderSuggestions() {
+        const row = document.getElementById("suggest-row");
+        const blocks = ProtoState.getGoldenBlocks().slice(0, 4);
+        row.innerHTML =
+          '<span class="secondary" style="font-size:12px;align-self:center">Suggested:</span>' +
+          blocks
+            .map(function (b) {
+              return (
+                '<button type="button" class="v3-suggest-chip is-clickable" data-pin="' +
+                b.id +
+                '">' +
+                (ProtoUI.kindBadge ? ProtoUI.kindBadge(b.kind) : "") +
+                " " +
+                b.name +
+                "</button>"
+              );
+            })
+            .join("");
+        row.querySelectorAll("[data-pin]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const b = ProtoState.insertBlockIntoWorkflow(btn.getAttribute("data-pin"));
+            active = b;
+            renderProvenance(b);
+            renderSlot(b);
+            ProtoUI.toast("Pinned company " + (b.kind || "block") + " · v" + b.version, "success");
+          });
+        });
+      }
+
+      renderProvenance(active);
+      renderSlot(active);
+      renderSuggestions();
+    })();
+  </script>
+</body>
+</html>

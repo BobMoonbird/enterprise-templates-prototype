@@ -1,0 +1,261 @@
+<!--
+PROTOTYPE SCREEN: 00b — Review workflows that will break
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, SettingsLayout, ImpactReviewPanel, Button, Toast
+JOURNEY BEAT: Admin review before block — count + owners + severity; Confirm block vs Cancel
+MIRO: Blocking a capability/domain must show impact (workflows that stop) before applying
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>00b · Review workflows that will break</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20261006230000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item is-active" href="00-security-allowlist.html"><span class="nav-item__icon">⚙</span> Settings</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Settings · Block review</strong>
+        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Security</span></span>
+      </header>
+      <div class="app-shell__content">
+        <div data-block="SettingsLayout">
+          <nav class="settings-nav">
+            <div class="settings-nav__title">Security</div>
+            <a class="settings-nav-item is-active" href="00-security-allowlist.html">Capability allowlist</a>
+            <a class="settings-nav-item" href="01-admin-roles.html">Roles</a>
+            <a class="settings-nav-item" href="01b-library-enable.html">Company library</a>
+            <a class="settings-nav-item" href="03b-approval-queue.html">Template approvals</a>
+          </nav>
+          <section class="settings-panel" data-block="ImpactReviewPanel">
+            <div class="impact-breadcrumb">
+              <a class="is-clickable" href="00-security-allowlist.html">Capability allowlist</a>
+              <span class="secondary">/</span>
+              <span>Impact review</span>
+            </div>
+
+            <div class="settings-panel__header">
+              <h2>Review workflows that will break</h2>
+              <p>
+                Blocking this <span id="impact-kind-label">capability</span> stops
+                execution on matching workflows. Confirm only after reviewing impact.
+              </p>
+            </div>
+
+            <div class="impact-target" id="impact-target">
+              <span class="impact-target__icon" id="impact-icon">💬</span>
+              <div>
+                <div class="impact-target__name" id="impact-label">Slack</div>
+                <div class="impact-target__meta secondary" id="impact-meta">Communication · integration</div>
+              </div>
+              <span class="badge badge--blocked">Pending block</span>
+            </div>
+
+            <div class="impact-stats" id="impact-stats" aria-live="polite"></div>
+
+            <div class="impact-section">
+              <h3>Affected workflows</h3>
+              <p class="secondary impact-section__hint">
+                Severity: <strong>Will stop on next run</strong> for active workflows;
+                paused/draft break when they next execute.
+              </p>
+              <table class="allowlist-table impact-table">
+                <thead>
+                  <tr>
+                    <th>Workflow</th>
+                    <th>Owner</th>
+                    <th>Status</th>
+                    <th>Severity</th>
+                  </tr>
+                </thead>
+                <tbody id="impact-body"></tbody>
+              </table>
+            </div>
+
+            <div class="impact-section">
+              <h3>By owner</h3>
+              <div class="impact-owners" id="impact-owners"></div>
+            </div>
+
+            <div class="impact-actions" data-block="Button">
+              <a class="btn btn--secondary" href="00-security-allowlist.html" id="btn-cancel-block">Cancel</a>
+              <button type="button" class="btn btn--danger" id="btn-confirm-block">
+                Confirm block &amp; notify owners
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20261006230000"></script>
+  <script src="../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      ProtoState.setRole("security");
+
+      function severityLabel(sev) {
+        if (sev === "will_stop") return "Will stop on next run";
+        if (sev === "will_break_on_resume") return "Breaks on resume";
+        if (sev === "will_break_on_run") return "Breaks on first run";
+        return sev || "Affected";
+      }
+
+      function severityClass(sev) {
+        if (sev === "will_stop") return "badge badge--blocked";
+        return "badge badge--pending";
+      }
+
+      function render() {
+        const pending = ProtoState.ensureDemoPendingBlock();
+        const workflows = ProtoState.getBlockImpact(pending.kind, pending.id);
+        const owners = ProtoState.summarizeImpactOwners(workflows);
+        const stopCount = workflows.filter(function (w) {
+          return w.severity === "will_stop";
+        }).length;
+
+        document.getElementById("impact-kind-label").textContent =
+          pending.kind === "domain" ? "HTTP domain" : "integration / capability";
+        document.getElementById("impact-icon").textContent = pending.icon || "⊘";
+        document.getElementById("impact-label").textContent = pending.label;
+        document.getElementById("impact-meta").textContent =
+          (pending.category || "") +
+          (pending.kind === "domain" ? " · domain pattern" : " · capability") +
+          (pending.demoReplay ? " · demo replay" : "");
+
+        document.getElementById("impact-stats").innerHTML =
+          '<div class="impact-stat">' +
+          '<div class="impact-stat__n">' +
+          workflows.length +
+          "</div>" +
+          '<div class="impact-stat__l">Workflows affected</div>' +
+          "</div>" +
+          '<div class="impact-stat impact-stat--danger">' +
+          '<div class="impact-stat__n">' +
+          stopCount +
+          "</div>" +
+          '<div class="impact-stat__l">Will stop on next run</div>' +
+          "</div>" +
+          '<div class="impact-stat">' +
+          '<div class="impact-stat__n">' +
+          owners.length +
+          "</div>" +
+          '<div class="impact-stat__l">Owners to notify</div>' +
+          "</div>";
+
+        document.getElementById("impact-body").innerHTML = workflows
+          .map(function (w) {
+            return (
+              '<tr class="is-clickable">' +
+              "<td><strong>" +
+              w.name +
+              '</strong><div class="secondary" style="font-size:11px">' +
+              (w.runsPerWeek ? w.runsPerWeek + " runs/wk · " : "") +
+              "last " +
+              (w.lastRun || "—") +
+              "</div></td>" +
+              "<td>" +
+              w.owner +
+              '<div class="secondary" style="font-size:11px">' +
+              (w.team || "") +
+              "</div></td>" +
+              '<td><span class="badge badge--' +
+              (w.status === "active" ? "allowed" : w.status === "draft" ? "draft" : "pending") +
+              '">' +
+              w.status +
+              "</span></td>" +
+              "<td><span class=\"" +
+              severityClass(w.severity) +
+              '">' +
+              severityLabel(w.severity) +
+              "</span></td>" +
+              "</tr>"
+            );
+          })
+          .join("");
+
+        document.getElementById("impact-owners").innerHTML = owners
+          .map(function (o) {
+            return (
+              '<div class="impact-owner-card is-clickable">' +
+              '<div class="impact-owner-card__name">' +
+              o.owner +
+              "</div>" +
+              '<div class="secondary">' +
+              (o.email || "") +
+              (o.team ? " · " + o.team : "") +
+              "</div>" +
+              '<div class="impact-owner-card__count">' +
+              o.workflows.length +
+              " workflow" +
+              (o.workflows.length === 1 ? "" : "s") +
+              (o.stopCount
+                ? " · <span class=\"text-danger\">" + o.stopCount + " will stop</span>"
+                : "") +
+              "</div>" +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      document.getElementById("btn-cancel-block").addEventListener("click", function () {
+        ProtoState.clearPendingBlock();
+      });
+
+      document.getElementById("btn-confirm-block").addEventListener("click", function () {
+        const pending = ProtoState.getPendingBlock();
+        if (pending && pending.demoReplay) {
+          // Already blocked — still show notify screen with impact snapshot
+          const workflows = ProtoState.getBlockImpact(pending.kind, pending.id);
+          const owners = ProtoState.summarizeImpactOwners(workflows);
+          const s = ProtoState.get();
+          s.lastBlockAction = {
+            kind: pending.kind,
+            id: pending.id,
+            label: pending.label,
+            icon: pending.icon || "",
+            category: pending.category || "",
+            workflows: workflows,
+            notifiedOwners: owners,
+            notifiedAt: new Date().toISOString(),
+            policyRef: "SEC-CAP-BLOCK",
+            demoReplay: true,
+          };
+          s.pendingBlock = null;
+          ProtoState.persist();
+        } else {
+          const result = ProtoState.confirmPendingBlock();
+          if (!result) {
+            ProtoUI.toast("Nothing to block — return to allowlist", "warning");
+            return;
+          }
+        }
+        ProtoUI.toast("Blocked · notifying owners…", "warning");
+        window.location.href = "00c-block-notify-owners.html";
+      });
+
+      document.addEventListener("proto:rerender", render);
+      render();
+    })();
+  </script>
+</body>
+</html>

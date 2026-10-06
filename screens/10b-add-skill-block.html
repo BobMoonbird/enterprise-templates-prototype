@@ -1,0 +1,178 @@
+<!--
+PROTOTYPE SCREEN: 10b — Add a company skill or block to the workflow
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, GalleryToolbar, SkillCard, Button, Toast
+JOURNEY BEAT: Builder + Member insert version-pinned company units into the canvas
+SPUR: from editor “Add skill / block”
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10b · Add skill or block</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20261006230000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item is-active" href="02-builder-editor.html"><span class="nav-item__icon">✎</span> Editor</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Add skill or block</strong>
+        <span class="provenance-chip" data-block="ProvenanceChip">Pinned version · company-owned</span>
+        <a class="btn btn--ghost btn--sm" href="02-builder-editor.html">← Back to editor</a>
+      </header>
+      <div class="app-shell__content">
+        <p class="skill-catalog__lede">
+          Insert a <strong>versioned</strong> company skill or block into this workflow.
+          You get a known I/O contract and an owner — not an anonymous copy-paste.
+          Acting as <span data-role-label>Member</span>.
+        </p>
+
+        <div data-block="GalleryToolbar" class="gallery-toolbar skill-catalog__toolbar">
+          <button type="button" class="filter-chip is-active" data-filter="all">All</button>
+          <button type="button" class="filter-chip" data-filter="skill">Skills</button>
+          <button type="button" class="filter-chip" data-filter="block">Blocks</button>
+          <input class="gallery-search" type="search" id="skill-search" placeholder="Search skills &amp; blocks…" />
+        </div>
+
+        <div class="skill-catalog__grid" id="skill-grid" data-block="SkillCatalog"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20261006230000"></script>
+  <script src="../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      let filter = "all";
+      let query = "";
+
+      function ioLine(list, label) {
+        if (!list || !list.length) return "";
+        return (
+          '<div class="skill-card__io"><span class="skill-card__io-label">' +
+          label +
+          "</span> " +
+          list
+            .map(function (x) {
+              return x.name + (x.required === false ? "?" : "");
+            })
+            .join(" · ") +
+          "</div>"
+        );
+      }
+
+      function cardHtml(s) {
+        const kindBadge =
+          s.kind === "block"
+            ? '<span class="badge badge--block">Block</span>'
+            : '<span class="badge badge--skill">Skill</span>';
+        const latest =
+          s.changelog && s.changelog[0]
+            ? s.changelog[0].note
+            : "Company-owned · version pinned on insert";
+        return (
+          '<article class="skill-card is-clickable" data-block="SkillCard" data-skill-id="' +
+          s.id +
+          '">' +
+          '<div class="skill-card__head">' +
+          kindBadge +
+          '<span class="version-chip">v' +
+          s.version +
+          "</span>" +
+          "</div>" +
+          "<h3>" +
+          s.name +
+          "</h3>" +
+          "<p>" +
+          s.description +
+          "</p>" +
+          ioLine(s.inputs, "In") +
+          ioLine(s.outputs, "Out") +
+          '<div class="skill-card__meta">' +
+          "<span>Owner <strong>" +
+          s.owner +
+          "</strong></span>" +
+          "<span>" +
+          (s.uses || 0) +
+          " uses</span>" +
+          "</div>" +
+          '<div class="skill-card__change secondary">' +
+          latest +
+          "</div>" +
+          '<button type="button" class="btn btn--primary btn--sm" data-add="' +
+          s.id +
+          '">Add to workflow</button>' +
+          "</article>"
+        );
+      }
+
+      function render() {
+        const list = ProtoState.getSkills(filter === "all" ? null : filter).filter(function (s) {
+          if (!query) return true;
+          const q = query.toLowerCase();
+          return (
+            (s.name && s.name.toLowerCase().indexOf(q) >= 0) ||
+            (s.description && s.description.toLowerCase().indexOf(q) >= 0) ||
+            (s.owner && s.owner.toLowerCase().indexOf(q) >= 0)
+          );
+        });
+        const el = document.getElementById("skill-grid");
+        if (!list.length) {
+          el.innerHTML = '<p class="secondary">No matching skills or blocks.</p>';
+          return;
+        }
+        el.innerHTML = list.map(cardHtml).join("");
+      }
+
+      document.querySelectorAll("[data-filter]").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          document.querySelectorAll("[data-filter]").forEach(function (c) {
+            c.classList.remove("is-active");
+          });
+          chip.classList.add("is-active");
+          filter = chip.getAttribute("data-filter");
+          render();
+        });
+      });
+
+      document.getElementById("skill-search").addEventListener("input", function (e) {
+        query = e.target.value || "";
+        render();
+      });
+
+      document.getElementById("skill-grid").addEventListener("click", function (e) {
+        const btn = e.target.closest("[data-add]");
+        if (!btn) return;
+        e.preventDefault();
+        const item = ProtoState.insertSkillIntoWorkflow(btn.getAttribute("data-add"));
+        if (!item) return;
+        ProtoUI.toast(
+          "Added “" + item.name + "” @ v" + item.version + " · owned by " + item.owner,
+          "success"
+        );
+        setTimeout(function () {
+          window.location.href = "02-builder-editor.html?inserted=1";
+        }, 650);
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>

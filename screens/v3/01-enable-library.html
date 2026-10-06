@@ -1,0 +1,158 @@
+<!--
+PROTOTYPE SCREEN: V3-01 — Enable company building-blocks library
+BLOCKS: ProtoChrome, VersionSwitcher, RoleSwitcher, AppShell, SettingsLayout, LibraryEnableToggle, Button, Toast
+JOURNEY BEAT: Admin opt-in · empty catalog until blocks approved (unhappy path setup)
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3-01 · Enable building-blocks library</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006230000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="06-blocks-gallery.html?proto=v3"><span class="nav-item__icon">◈</span> Building blocks</a>
+        <a class="nav-item is-active" href="01-enable-library.html?proto=v3"><span class="nav-item__icon">⚙</span> Settings</a>
+      </nav>
+      <div class="app-shell__footer">Short path · V3</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Settings · Building blocks</strong>
+        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Admin</span></span>
+      </header>
+      <div class="app-shell__content">
+        <div data-block="SettingsLayout">
+          <nav class="settings-nav">
+            <div class="settings-nav__title">Governance</div>
+            <a class="settings-nav-item is-active" href="01-enable-library.html?proto=v3">Building blocks</a>
+            <a class="settings-nav-item" href="04-approve-block.html?proto=v3">Block approvals</a>
+          </nav>
+          <section class="settings-panel">
+            <div class="settings-panel__header">
+              <h2>Company building-blocks library</h2>
+              <p>
+                Org-owned <strong>tools</strong>, <strong>skills</strong>, and <strong>agents</strong> —
+                smaller units than full golden workflows. Public gallery stays discovery-only.
+              </p>
+            </div>
+
+            <div class="lib-callout" data-block="LibraryEnableToggle">
+              <span aria-hidden="true">◇</span>
+              <div>
+                <strong>Must for this short prototype.</strong>
+                Enable the library first. Until builders submit and you approve,
+                Members see an <em>empty</em> catalog — public gallery is still not the SoR.
+              </div>
+            </div>
+
+            <div data-block="LibraryEnableToggle">
+              <div class="toggle-row">
+                <div class="toggle-row__text">
+                  <h3>Show building-blocks library in this instance</h3>
+                  <p>
+                    When on, Members browse approved company blocks. Create/copy rails
+                    apply on UI, AI, and MCP the same way.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="toggle"
+                  id="library-toggle"
+                  data-toggle-library
+                  role="switch"
+                  aria-label="Show company building-blocks library"
+                ></button>
+              </div>
+            </div>
+
+            <div class="lib-admin-keys">
+              <a class="lib-admin-key is-clickable" href="06-blocks-gallery.html?proto=v3&role=member">
+                <div class="lib-admin-key__label">Unhappy path</div>
+                <h3>Preview empty Member gallery</h3>
+                <p>After enable with no approved blocks — empty state + discovery note.</p>
+              </a>
+              <a class="lib-admin-key is-clickable" href="04-approve-block.html?proto=v3">
+                <div class="lib-admin-key__label">Admin key view</div>
+                <h3>Pending block approvals</h3>
+                <p>Submit ≠ publish — certify before Members can use a block.</p>
+              </a>
+            </div>
+
+            <div class="enable-checklist">
+              <div class="enable-check">
+                <span class="enable-check__icon">✓</span>
+                <div>
+                  <strong>Tools · skills · agents</strong>
+                  <p class="secondary">Not a full golden-workflow SoR tour — composable units.</p>
+                </div>
+              </div>
+              <div class="enable-check">
+                <span class="enable-check__icon">✓</span>
+                <div>
+                  <strong>Create/copy rails</strong>
+                  <p class="secondary">Same rules on UI, AI assist, and MCP.</p>
+                </div>
+              </div>
+              <div class="enable-check">
+                <span class="enable-check__icon">✓</span>
+                <div>
+                  <strong>Security allowlist</strong>
+                  <p class="secondary">Stays in Full (V2) — struck from this short path.</p>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:24px" class="flex gap-3">
+              <a class="btn btn--primary" href="02-builder-rails.html?proto=v3" id="next-builder">
+                Next: Build under rails →
+              </a>
+              <a class="btn btn--ghost" href="06-blocks-gallery.html?proto=v3&role=member">Open gallery as Member</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/state.js?v=20261006230000"></script>
+  <script src="../../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      if (ProtoState.getProtoVersion() !== "v3") {
+        ProtoState.setProtoVersion("v3", { reload: false });
+      }
+      if (ProtoState.get().role === "security" || ProtoState.get().role === "member") {
+        ProtoState.setRole("admin");
+      }
+
+      function sync() {
+        const on = ProtoState.get().libraryEnabled;
+        const t = document.getElementById("library-toggle");
+        t.classList.toggle("is-on", on);
+        t.setAttribute("aria-pressed", on ? "true" : "false");
+      }
+      document.getElementById("next-builder").addEventListener("click", function () {
+        if (!ProtoState.get().libraryEnabled) {
+          ProtoState.setLibraryEnabled(true);
+        }
+        ProtoState.setRole("builder");
+      });
+      document.addEventListener("proto:rerender", sync);
+      sync();
+    })();
+  </script>
+</body>
+</html>

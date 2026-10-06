@@ -23,6 +23,23 @@
   white-space: nowrap;
 }
 
+.proto-chrome__version-pill {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--proto-border);
+  background: #111827;
+  color: #93c5fd;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+body[data-proto="v3"] .proto-chrome__version-pill {
+  color: #86efac;
+}
+
 .proto-chrome__step {
   color: #e5e7eb;
   flex: 1;
@@ -30,6 +47,61 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ── VersionSwitcher (proto V2 / V3) ── */
+[data-block="VersionSwitcher"],
+.version-switcher {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.version-switcher__label {
+  color: #9ca3af;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.version-switcher__select {
+  background: #1f2937;
+  border: 1px solid var(--proto-border);
+  color: #e5e7eb;
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: var(--fs-sm);
+}
+
+.version-switcher__select:hover,
+.version-switcher__select:focus-visible {
+  outline: 1px solid var(--proto-accent);
+  outline-offset: 1px;
+}
+
+.badge--kind {
+  background: rgba(147, 197, 253, 0.12);
+  color: #93c5fd;
+  border: 1px solid rgba(147, 197, 253, 0.35);
+}
+
+.badge--kind-tool {
+  background: rgba(252, 211, 77, 0.12);
+  color: #fcd34d;
+  border-color: rgba(252, 211, 77, 0.35);
+}
+
+.badge--kind-skill {
+  background: rgba(167, 139, 250, 0.12);
+  color: #c4b5fd;
+  border-color: rgba(167, 139, 250, 0.35);
+}
+
+.badge--kind-agent {
+  background: rgba(52, 211, 153, 0.12);
+  color: #6ee7b7;
+  border-color: rgba(52, 211, 153, 0.35);
 }
 
 .proto-chrome__nav {
@@ -723,6 +795,14 @@ body:not([data-role="builder"]):not([data-role="admin"]) .role-show-submit { dis
 .badge--pending { background: var(--warning-tint); color: var(--warning); }
 .badge--golden { background: var(--success-tint); color: var(--success); }
 .badge--archived { background: var(--bg-active); color: var(--text-muted); }
+.badge--skill {
+  background: rgba(167, 139, 250, 0.18);
+  color: var(--purple);
+}
+.badge--block {
+  background: var(--info-tint);
+  color: var(--info);
+}
 
 /* ── Toggle ── */
 [data-block="LibraryEnableToggle"] .toggle-row,
@@ -1000,6 +1080,17 @@ body:not([data-role="builder"]):not([data-role="admin"]) .role-show-submit { dis
 
 .canvas-node--gated {
   border-color: rgba(91, 141, 239, 0.45);
+}
+
+.canvas-node--skill {
+  border-color: rgba(167, 139, 250, 0.55);
+  min-width: 200px;
+}
+
+.canvas-node__owner {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .editor-canvas {

@@ -1,38 +1,42 @@
 /**
- * interactions.js — navigate, toasts, modals, role switch, ProtoChrome, shared render helpers
+ * interactions.js — navigate, toasts, modals, role/version switch, ProtoChrome, shared render helpers
  */
 (function () {
   function pathPrefix() {
-    // Prefer script src: screens load ../js/interactions.js ; map loads js/interactions.js.
-    // More reliable than pathname alone (some previews omit /screens/ in the URL).
+    // Prefer script src: screens → ../js ; screens/v3 → ../../js ; map → js/
     const scripts = document.getElementsByTagName("script");
     for (let i = 0; i < scripts.length; i++) {
       const src = scripts[i].getAttribute("src") || "";
       if (src.indexOf("interactions.js") === -1) continue;
+      if (/^\.\.\/\.\.\//.test(src) || src.indexOf("/../../js/") !== -1) return "../../";
       if (/^\.\.\//.test(src) || src.indexOf("/../js/") !== -1) return "../";
       return "";
     }
     const path = decodeURIComponent(window.location.pathname || "").replace(/\\/g, "/");
+    if (path.indexOf("/screens/v3/") !== -1) return "../../";
     if (path.indexOf("/screens/") !== -1) return "../";
-    // Fallback: known screen filenames even if /screens/ is missing from the path
-    const file = screenFile();
+    const rel = screenPath();
     if (
-      file &&
-      file !== "index.html" &&
+      rel &&
+      rel !== "index.html" &&
       typeof ProtoState !== "undefined" &&
       ProtoState.DEMO_PATH &&
       ProtoState.DEMO_PATH.some(function (s) {
-        return s.file === file;
+        return s.file === rel || s.file.split("/").pop() === rel;
       })
     ) {
-      return "../";
+      return rel.indexOf("v3/") === 0 ? "../../" : "../";
     }
     return "";
   }
 
   function demoMapHref() {
-    // Always the v2 demo map at prototype-v2/index.html (relative for file:// + static server)
-    return pathPrefix() + "index.html";
+    const prefix = pathPrefix();
+    const v =
+      typeof ProtoState !== "undefined" && ProtoState.getProtoVersion
+        ? ProtoState.getProtoVersion()
+        : "v2";
+    return prefix + "index.html?proto=" + v;
   }
 
   function screenFile() {
@@ -46,9 +50,27 @@
     return file.split("?")[0] || "index.html";
   }
 
+  /** Path relative to screens/ (e.g. v3/01-….html) for DEMO_PATH matching */
+  function screenPath() {
+    const path = decodeURIComponent(window.location.pathname || "").replace(/\\/g, "/");
+    const idx = path.indexOf("/screens/");
+    if (idx >= 0) {
+      return path.slice(idx + "/screens/".length).split("?")[0];
+    }
+    return screenFile();
+  }
+
   function isIndex() {
     const f = screenFile();
     return f === "index.html" || f === "" || f === "prototype-v2";
+  }
+
+  function findPathIndex(path) {
+    const rel = screenPath();
+    const file = screenFile();
+    return path.findIndex(function (s) {
+      return s.file === rel || s.file === file || s.file.split("/").pop() === file;
+    });
   }
 
   /* ── Toasts ── */
@@ -108,40 +130,52 @@
     if (document.body.dataset.noProto === "true") return;
 
     const prefix = pathPrefix();
-    const file = screenFile();
     const path = ProtoState.DEMO_PATH;
-    const idx = path.findIndex(function (s) {
-      return s.file === file;
-    });
+    const idx = findPathIndex(path);
     const current = idx >= 0 ? path[idx] : null;
     const prev = idx > 0 ? path[idx - 1] : null;
     const next = idx >= 0 && idx < path.length - 1 ? path[idx + 1] : null;
 
     const onMap = isIndex();
     const mapHref = demoMapHref();
+    const version = ProtoState.getProtoVersion();
+    const versionMeta = ProtoState.PROTO_VERSIONS[version] || ProtoState.PROTO_VERSIONS.v2;
+
     const bar = document.createElement("div");
     bar.setAttribute("data-block", "ProtoChrome");
     bar.innerHTML =
       '<span class="proto-chrome__brand">Enterprise templates · demo</span>' +
+      '<span class="proto-chrome__version-pill">' +
+      versionMeta.shortLabel +
+      "</span>" +
       '<span class="proto-chrome__step">' +
       (current
         ? current.id + " · " + current.title + " — " + current.beat
         : onMap
-          ? "Demo map — start the primary path (roles set along the journey)"
-          : file) +
+          ? "Demo map — " + versionMeta.mapLabel
+          : screenFile()) +
       "</span>" +
+      '<div data-block="VersionSwitcher" class="version-switcher"></div>' +
       (onMap ? "" : '<div data-block="RoleSwitcher" class="role-switcher"></div>') +
       '<div class="proto-chrome__nav">' +
       (onMap
         ? ""
         : prev
-          ? '<a class="proto-chrome__btn" href="' + prefix + "screens/" + prev.file + '">← Back</a>'
+          ? '<a class="proto-chrome__btn" href="' +
+            prefix +
+            "screens/" +
+            prev.file +
+            "?proto=" +
+            version +
+            '">← Back</a>'
           : '<a class="proto-chrome__btn" href="' + mapHref + '">← Map</a>') +
       (next
         ? '<a class="proto-chrome__btn proto-chrome__btn--primary" href="' +
           prefix +
           "screens/" +
           next.file +
+          "?proto=" +
+          version +
           '">Next →</a>'
         : "") +
       (onMap ? "" : '<a class="proto-chrome__map" href="' + mapHref + '">Demo map</a>') +
@@ -149,17 +183,57 @@
 
     document.body.insertBefore(bar, document.body.firstChild);
     document.body.classList.add("has-proto-chrome");
+    document.body.dataset.proto = version;
+    renderVersionSwitcher(bar.querySelector('[data-block="VersionSwitcher"]'));
     if (!onMap) {
       renderRoleSwitcher(bar.querySelector('[data-block="RoleSwitcher"]'));
     }
   }
 
+  function renderVersionSwitcher(container) {
+    if (!container) return;
+    const version = ProtoState.getProtoVersion();
+    const options = Object.keys(ProtoState.PROTO_VERSIONS)
+      .map(function (id) {
+        const v = ProtoState.PROTO_VERSIONS[id];
+        return (
+          '<option value="' +
+          id +
+          '"' +
+          (id === version ? " selected" : "") +
+          ">" +
+          v.shortLabel +
+          "</option>"
+        );
+      })
+      .join("");
+
+    container.innerHTML =
+      '<span class="version-switcher__label">Proto</span>' +
+      '<select class="version-switcher__select" aria-label="Prototype version">' +
+      options +
+      "</select>";
+
+    container.querySelector("select").addEventListener("change", function (e) {
+      const next = e.target.value;
+      const mapHref = pathPrefix() + "index.html";
+      ProtoState.setProtoVersion(next, { reload: false });
+      // Always land on map when switching versions so path/chrome stay coherent
+      window.location.href = mapHref + "?proto=" + next;
+    });
+  }
+
   function renderRoleSwitcher(container) {
     if (!container) return;
     const role = ProtoState.get().role;
-    const options = Object.keys(ProtoState.ROLES)
+    const roleIds =
+      ProtoState.getProtoVersion() === "v3"
+        ? ["admin", "builder", "member"]
+        : Object.keys(ProtoState.ROLES);
+    const options = roleIds
       .map(function (id) {
         const r = ProtoState.ROLES[id];
+        if (!r) return "";
         return (
           '<option value="' +
           id +
@@ -172,7 +246,6 @@
       })
       .join("");
 
-    // Compact demo control: "Acting as" + dropdown (product screens also show live labels)
     container.innerHTML =
       '<span class="role-switcher__label">Acting as</span>' +
       '<select class="role-switcher__select" aria-label="Acting as role">' +
@@ -190,7 +263,7 @@
   function applyRoleChrome() {
     const role = ProtoState.get().role;
     document.body.dataset.role = role;
-    // Update any live role labels
+    document.body.dataset.proto = ProtoState.getProtoVersion();
     document.querySelectorAll("[data-role-label]").forEach(function (el) {
       el.textContent = ProtoState.getRole().label;
     });
@@ -209,10 +282,16 @@
     return '<span class="badge badge--' + status + '">' + label + "</span>";
   }
 
+  function kindBadge(kind) {
+    const k = kind || "skill";
+    const label = k.charAt(0).toUpperCase() + k.slice(1);
+    return '<span class="badge badge--kind badge--kind-' + k + '">' + label + "</span>";
+  }
+
   function templateCardHtml(t, opts) {
     opts = opts || {};
     const href = opts.href || "#";
-    const nodes = (t.nodes || [])
+    const nodes = (t.nodes || t.caps || [])
       .slice(0, 4)
       .map(function (n) {
         return '<span class="node-chip">' + n + "</span>";
@@ -241,6 +320,7 @@
           .join("") +
         "</div>"
       : "";
+    const kindHtml = t.kind ? kindBadge(t.kind) + " " : "";
     return (
       '<a class="template-card is-clickable" data-block="TemplateCard" data-template-id="' +
       t.id +
@@ -251,6 +331,7 @@
       '<span class="template-card__cat">' +
       (t.category || "") +
       "</span>" +
+      kindHtml +
       statusBadge(t.status) +
       "</div>" +
       '<div class="template-card__name">' +
@@ -320,6 +401,55 @@
     toast("Blocked: " + ((node && node.name) || "tool") + " is not allowlisted", "danger");
   }
 
+  /** V3: AI/MCP out-of-policy unit → use company block instead */
+  function showOutOfPolicyBlock(opts) {
+    opts = opts || {};
+    let backdrop = document.getElementById("modal-out-of-policy");
+    if (!backdrop) {
+      backdrop = document.createElement("div");
+      backdrop.id = "modal-out-of-policy";
+      backdrop.className = "modal-backdrop";
+      backdrop.setAttribute("data-block", "Modal");
+      backdrop.setAttribute("aria-hidden", "true");
+      backdrop.innerHTML =
+        '<div class="modal" role="dialog" aria-labelledby="oop-title">' +
+        '<div class="modal__header">' +
+        '<h2 class="modal__title" id="oop-title">Not an approved company block</h2>' +
+        '<button type="button" class="icon-btn" data-close-modal="modal-out-of-policy" aria-label="Close">✕</button>' +
+        "</div>" +
+        '<div class="modal__body">' +
+        '<p class="secondary" id="oop-intro"></p>' +
+        '<div class="block-reason" id="oop-reason"></div>' +
+        "</div>" +
+        '<div class="modal__footer">' +
+        '<button type="button" class="btn btn--secondary" data-close-modal="modal-out-of-policy">Dismiss</button>' +
+        '<button type="button" class="btn btn--primary" id="btn-use-company-block">Use company block</button>' +
+        "</div>" +
+        "</div>";
+      document.body.appendChild(backdrop);
+      backdrop.addEventListener("click", function (e) {
+        if (e.target === backdrop) closeModal(backdrop);
+      });
+      backdrop.querySelector("#btn-use-company-block").addEventListener("click", function () {
+        closeModal(backdrop);
+        const href = backdrop.dataset.altHref || pathPrefix() + "screens/v3/06-blocks-gallery.html?proto=v3";
+        toast("Switched to company building blocks", "success");
+        setTimeout(function () {
+          window.location.href = href;
+        }, 350);
+      });
+    }
+    document.getElementById("oop-intro").textContent =
+      opts.intro ||
+      "Create/copy rails apply on UI, AI, and MCP — only Admin-approved company blocks can be used.";
+    document.getElementById("oop-reason").textContent =
+      opts.reason || "Suggested unit is not in the company building-blocks library.";
+    backdrop.dataset.altHref =
+      opts.altHref || pathPrefix() + "screens/v3/06-blocks-gallery.html?proto=v3";
+    openModal("modal-out-of-policy");
+    toast("Blocked: use an approved company building block", "danger");
+  }
+
   /* ── Global click delegation ── */
   function bindGlobals() {
     document.addEventListener("click", function (e) {
@@ -351,14 +481,38 @@
         }, 400);
       }
 
+      const useBlock = e.target.closest("[data-use-block]");
+      if (useBlock) {
+        e.preventDefault();
+        const id = useBlock.getAttribute("data-use-block");
+        const b = ProtoState.insertBlockIntoWorkflow(id);
+        toast(
+          b
+            ? "Added company " + (b.kind || "block") + " · pending publish already approved"
+            : "Building block added",
+          "success"
+        );
+        const prefix = pathPrefix();
+        setTimeout(function () {
+          window.location.href = prefix + "screens/v3/07-compose-canvas.html?proto=v3";
+        }, 400);
+      }
+
       const approveBtn = e.target.closest("[data-approve]");
       if (approveBtn) {
         e.preventDefault();
         const id = approveBtn.getAttribute("data-approve");
-        ProtoState.updateTemplateStatus(id, "golden", {
-          updated: new Date().toISOString().slice(0, 10),
-        });
-        toast("Approved as golden company template", "success");
+        if (ProtoState.getProtoVersion() === "v3" && ProtoState.updateBlockStatus) {
+          ProtoState.updateBlockStatus(id, "golden", {
+            updated: new Date().toISOString().slice(0, 10),
+          });
+          toast("Approved — published as company building block", "success");
+        } else {
+          ProtoState.updateTemplateStatus(id, "golden", {
+            updated: new Date().toISOString().slice(0, 10),
+          });
+          toast("Approved as golden company template", "success");
+        }
         document.dispatchEvent(new CustomEvent("proto:rerender"));
       }
 
@@ -366,8 +520,13 @@
       if (rejectBtn) {
         e.preventDefault();
         const id = rejectBtn.getAttribute("data-reject");
-        ProtoState.updateTemplateStatus(id, "draft");
-        toast("Rejected — returned to builder as draft", "warning");
+        if (ProtoState.getProtoVersion() === "v3" && ProtoState.updateBlockStatus) {
+          ProtoState.updateBlockStatus(id, "draft");
+          toast("Rejected — returned to builder as draft", "warning");
+        } else {
+          ProtoState.updateTemplateStatus(id, "draft");
+          toast("Rejected — returned to builder as draft", "warning");
+        }
         document.dispatchEvent(new CustomEvent("proto:rerender"));
       }
 
@@ -386,8 +545,12 @@
         toggleLib.setAttribute("aria-pressed", on ? "true" : "false");
         toast(
           on
-            ? "Private library left available (recommended default)"
-            : "Private library hidden — experimental toggle",
+            ? ProtoState.getProtoVersion() === "v3"
+              ? "Building-blocks library enabled — catalog is empty until blocks are approved"
+              : "Private library left available (recommended default)"
+            : ProtoState.getProtoVersion() === "v3"
+              ? "Building-blocks library hidden"
+              : "Private library hidden — experimental toggle",
           "success"
         );
         document.dispatchEvent(new CustomEvent("proto:rerender"));
@@ -402,6 +565,14 @@
         });
         showNodeBlocked(node);
       }
+
+      const oop = e.target.closest("[data-out-of-policy]");
+      if (oop) {
+        e.preventDefault();
+        showOutOfPolicyBlock({
+          reason: oop.getAttribute("data-out-of-policy") || undefined,
+        });
+      }
     });
 
     document.addEventListener("keydown", function (e) {
@@ -415,20 +586,31 @@
     openModal: openModal,
     closeModal: closeModal,
     statusBadge: statusBadge,
+    kindBadge: kindBadge,
     templateCardHtml: templateCardHtml,
     showNodeBlocked: showNodeBlocked,
+    showOutOfPolicyBlock: showOutOfPolicyBlock,
     pathPrefix: pathPrefix,
     demoMapHref: demoMapHref,
+    screenPath: screenPath,
     applyRoleChrome: applyRoleChrome,
+    renderVersionSwitcher: renderVersionSwitcher,
   };
 
   document.addEventListener("DOMContentLoaded", function () {
+    // Honor ?proto= before chrome inject
+    const params = new URLSearchParams(window.location.search);
+    const protoParam = (params.get("proto") || "").toLowerCase();
+    if (protoParam === "v2" || protoParam === "v3") {
+      if (ProtoState.getProtoVersion() !== protoParam) {
+        ProtoState.setProtoVersion(protoParam, { reload: false });
+      }
+    }
+
     applyRoleChrome();
     injectProtoChrome();
     bindGlobals();
 
-    // Query-param role override: ?role=member (legacy ?role=copy still accepted)
-    const params = new URLSearchParams(window.location.search);
     let roleParam = params.get("role");
     if (roleParam === "copy") roleParam = "member";
     if (roleParam) {
@@ -438,7 +620,6 @@
       if (sel) sel.value = roleParam;
     }
 
-    // Flash toast from session if set
     const flash = sessionStorage.getItem("proto-flash");
     if (flash) {
       try {

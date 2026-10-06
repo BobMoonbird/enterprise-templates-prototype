@@ -1,8 +1,8 @@
 <!--
-PROTOTYPE: Enterprise templates v2 — demo map
-PURPOSE: Entry + screens grouped by role/job (Miro Frame 5)
-BLOCKS: ProtoChrome, Button
-JOURNEY: Start here → 00 allowlist (primary path; role advances along the path)
+PROTOTYPE: Enterprise templates — demo map (V2 full / V3 short)
+PURPOSE: Entry + screens grouped by role/job; switchable prototype version
+BLOCKS: ProtoChrome, VersionSwitcher, Button
+JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -10,21 +10,32 @@ JOURNEY: Start here → 00 allowlist (primary path; role advances along the path
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Enterprise templates · demo map</title>
-  <link rel="stylesheet" href="css/tokens.css?v=20260929154500" />
-  <link rel="stylesheet" href="css/base.css?v=20260929154500" />
-  <link rel="stylesheet" href="css/components.css?v=20260929154500" />
-  <link rel="stylesheet" href="css/screens.css?v=20260929154500" />
+  <link rel="stylesheet" href="css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="css/screens.css?v=20261006230000" />
 </head>
 <body>
   <main class="demo-map" data-block="AppShell">
     <div class="demo-map__hero">
-      <h1>Enterprise template library</h1>
-      <p>
+      <h1 id="hero-title">Enterprise template library</h1>
+      <p id="hero-copy">
         n8n case-study click-through: private/golden company library + hard rails
-        (capability allowlist, create-vs-copy). Screens below are grouped by
+        (capability allowlist, create-vs-copy) plus a thin <strong>skills / blocks</strong> spur
+        (versioned company units under full templates). Screens below are grouped by
         <strong>job / role</strong> — Security → Admin → Builder → Member.
         Public gallery stays discovery; this demo is the internal system of record.
       </p>
+
+      <div class="demo-map__version" data-block="VersionSwitcher">
+        <span class="demo-map__version-label">Prototype version</span>
+        <select id="map-version-select" class="version-switcher__select" aria-label="Prototype version">
+          <option value="v2">Full demo (V2)</option>
+          <option value="v3">Short · building blocks (V3)</option>
+        </select>
+        <p class="demo-map__version-desc" id="map-version-desc"></p>
+      </div>
+
       <div class="demo-map__hero-actions">
         <a class="btn btn--primary" data-block="Button" href="screens/00-security-allowlist.html" id="btn-start">
           Start primary path
@@ -36,88 +47,144 @@ JOURNEY: Start here → 00 allowlist (primary path; role advances along the path
     </div>
 
     <section class="demo-map__screens" aria-label="Screens by role">
-      <h2 class="demo-map__screens-title">Screens by job / role</h2>
+      <h2 class="demo-map__screens-title" id="screens-title">Screens by job / role</h2>
       <div class="demo-map-roles" id="screen-roles"></div>
     </section>
   </main>
 
-  <script src="js/state.js?v=20260929154500"></script>
-  <script src="js/interactions.js?v=20260929154500"></script>
+  <script src="js/state.js?v=20261006230000"></script>
+  <script src="js/interactions.js?v=20261006230000"></script>
   <script>
     (function () {
-      const primary = [
-        "00-security-allowlist.html",
-        "01-admin-roles.html",
-        "01b-library-enable.html",
-        "02-builder-editor.html",
-        "03-submit-as-template.html",
-        "03b-approval-queue.html",
-        "05-create-empty.html",
-        "06-company-library.html",
-        "08-result.html",
-      ];
+      const COPY = {
+        v2: {
+          title: "Enterprise template library",
+          hero:
+            "n8n case-study click-through: private/golden company library + hard rails " +
+            "(capability allowlist, create-vs-copy) plus a thin <strong>skills / blocks</strong> spur. " +
+            "Screens below are grouped by <strong>job / role</strong> — Security → Admin → Builder → Member. " +
+            "Public gallery stays discovery; this demo is the internal system of record.",
+          startLabel: "Start primary path",
+          screensTitle: "Screens by job / role",
+          primary: [
+            "00-security-allowlist.html",
+            "00b-block-impact-review.html",
+            "00c-block-notify-owners.html",
+            "01-admin-roles.html",
+            "01b-library-enable.html",
+            "02-builder-editor.html",
+            "03-submit-as-template.html",
+            "03b-approval-queue.html",
+            "05-create-empty.html",
+            "06-company-library.html",
+            "08-result.html",
+          ],
+          startFile: "screens/00-security-allowlist.html",
+          startRole: "security",
+        },
+        v3: {
+          title: "Company building blocks",
+          hero:
+            "<strong>Short prototype (V3)</strong> — go deep on one Must (company building-blocks library: " +
+            "tools / skills / agents) + one Should (create/copy rails across UI, AI, MCP). " +
+            "Security allowlist stays in Full (V2) only. Path: Admin enable → Builder submit → Approve → Member compose.",
+          startLabel: "Start short path",
+          screensTitle: "Short spine by job / role",
+          primary: [
+            "v3/01-enable-library.html",
+            "v3/02-builder-rails.html",
+            "v3/03-mark-company-block.html",
+            "v3/04-approve-block.html",
+            "v3/05-create-workflow.html",
+            "v3/06-blocks-gallery.html",
+            "v3/07-compose-canvas.html",
+          ],
+          startFile: "screens/v3/01-enable-library.html",
+          startRole: "admin",
+        },
+      };
 
-      const byRole = {};
-      ProtoState.DEMO_PATH.forEach(function (s) {
-        const r = s.role || "builder";
-        if (!byRole[r]) byRole[r] = [];
-        byRole[r].push(s);
-      });
-      Object.keys(byRole).forEach(function (r) {
-        byRole[r].sort(function (a, b) {
-          return (a.spur ? 1 : 0) - (b.spur ? 1 : 0);
+      function render() {
+        const version = ProtoState.getProtoVersion();
+        const cfg = COPY[version] || COPY.v2;
+        const meta = ProtoState.PROTO_VERSIONS[version];
+
+        document.getElementById("hero-title").textContent = cfg.title;
+        document.getElementById("hero-copy").innerHTML = cfg.hero;
+        document.getElementById("screens-title").textContent = cfg.screensTitle;
+        document.getElementById("map-version-desc").textContent = meta
+          ? meta.description
+          : "";
+        document.getElementById("map-version-select").value = version;
+
+        const start = document.getElementById("btn-start");
+        start.textContent = cfg.startLabel;
+        start.href = cfg.startFile + "?proto=" + version;
+
+        const byRole = {};
+        ProtoState.DEMO_PATH.forEach(function (s) {
+          const r = s.role || "builder";
+          if (!byRole[r]) byRole[r] = [];
+          byRole[r].push(s);
         });
-      });
+        Object.keys(byRole).forEach(function (r) {
+          byRole[r].sort(function (a, b) {
+            return (a.spur ? 1 : 0) - (b.spur ? 1 : 0);
+          });
+        });
 
-      function cardHtml(s) {
-        const isPrimary = primary.indexOf(s.file) >= 0;
-        return (
-          '<a class="demo-map-card is-clickable' +
-          (isPrimary ? " is-primary" : "") +
-          (s.spur ? " is-spur" : "") +
-          '" href="screens/' +
-          s.file +
-          '" data-set-role="' +
-          (s.role || "") +
-          '">' +
-          '<div class="demo-map-card__num">' +
-          s.id +
-          (s.spur ? " · spur" : "") +
-          "</div>" +
-          '<div class="demo-map-card__title">' +
-          s.title +
-          "</div>" +
-          (s.beat
-            ? '<div class="demo-map-card__beat">' + s.beat + "</div>"
-            : "") +
-          "</a>"
-        );
-      }
-
-      const sections = ProtoState.DEMO_MAP_SECTIONS || [];
-      document.getElementById("screen-roles").innerHTML = sections
-        .map(function (sec) {
-          const role = ProtoState.ROLES[sec.role] || {};
-          const screens = byRole[sec.role] || [];
+        function cardHtml(s) {
+          const isPrimary = cfg.primary.indexOf(s.file) >= 0;
           return (
-            '<section class="demo-map-role" data-role-section="' +
-            sec.role +
+            '<a class="demo-map-card is-clickable' +
+            (isPrimary ? " is-primary" : "") +
+            (s.spur ? " is-spur" : "") +
+            '" href="screens/' +
+            s.file +
+            "?proto=" +
+            version +
+            '" data-set-role="' +
+            (s.role || "") +
             '">' +
-            '<header class="demo-map-role__head">' +
-            '<div class="demo-map-role__label">' +
-            (role.label || sec.role) +
+            '<div class="demo-map-card__num">' +
+            s.id +
+            (s.spur ? " · spur" : "") +
             "</div>" +
-            '<p class="demo-map-role__job">' +
-            (sec.job || role.description || "") +
-            "</p>" +
-            "</header>" +
-            '<div class="demo-map-grid">' +
-            screens.map(cardHtml).join("") +
+            '<div class="demo-map-card__title">' +
+            s.title +
             "</div>" +
-            "</section>"
+            (s.beat
+              ? '<div class="demo-map-card__beat">' + s.beat + "</div>"
+              : "") +
+            "</a>"
           );
-        })
-        .join("");
+        }
+
+        const sections = ProtoState.DEMO_MAP_SECTIONS || [];
+        document.getElementById("screen-roles").innerHTML = sections
+          .map(function (sec) {
+            const role = ProtoState.ROLES[sec.role] || {};
+            const screens = byRole[sec.role] || [];
+            return (
+              '<section class="demo-map-role" data-role-section="' +
+              sec.role +
+              '">' +
+              '<header class="demo-map-role__head">' +
+              '<div class="demo-map-role__label">' +
+              (role.label || sec.role) +
+              "</div>" +
+              '<p class="demo-map-role__job">' +
+              (sec.job || role.description || "") +
+              "</p>" +
+              "</header>" +
+              '<div class="demo-map-grid">' +
+              screens.map(cardHtml).join("") +
+              "</div>" +
+              "</section>"
+            );
+          })
+          .join("");
+      }
 
       document.getElementById("screen-roles").addEventListener("click", function (e) {
         const link = e.target.closest("[data-set-role]");
@@ -126,17 +193,32 @@ JOURNEY: Start here → 00 allowlist (primary path; role advances along the path
         if (roleId) ProtoState.setRole(roleId);
       });
 
+      document.getElementById("map-version-select").addEventListener("change", function (e) {
+        const next = e.target.value;
+        ProtoState.setProtoVersion(next, { reload: false });
+        window.location.href = "index.html?proto=" + next;
+      });
+
       document.getElementById("btn-start").addEventListener("click", function () {
-        ProtoState.setRole("security");
+        const cfg = COPY[ProtoState.getProtoVersion()] || COPY.v2;
+        ProtoState.setRole(cfg.startRole);
       });
 
       document.getElementById("btn-reset").addEventListener("click", function () {
+        const version = ProtoState.getProtoVersion();
+        const cfg = COPY[version] || COPY.v2;
         ProtoState.reset();
-        ProtoState.setRole("security");
+        ProtoState.setRole(cfg.startRole);
         if (window.ProtoUI && ProtoUI.toast) {
-          ProtoUI.toast("Demo data reset", "success");
+          ProtoUI.toast(
+            version === "v3" ? "V3 demo data reset (isolated key)" : "Demo data reset",
+            "success"
+          );
         }
+        render();
       });
+
+      render();
     })();
   </script>
 </body>

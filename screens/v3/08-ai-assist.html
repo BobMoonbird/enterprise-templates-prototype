@@ -1,0 +1,178 @@
+<!--
+PROTOTYPE SCREEN: V3-08 — AI assist compose (approved blocks only)
+BLOCKS: ProtoChrome, AppShell, AiAssistPanel, ProvenanceChip, Modal, Button, Toast
+JOURNEY BEAT: Out-of-policy suggestion blocked → use company block
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3-08 · AI assist · company blocks</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006230000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="06-blocks-gallery.html?proto=v3"><span class="nav-item__icon">◈</span> Building blocks</a>
+        <a class="nav-item is-active" href="08-ai-assist.html?proto=v3"><span class="nav-item__icon">✦</span> AI</a>
+      </nav>
+      <div class="app-shell__footer">Short path · V3</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Create with AI</strong>
+        <span class="provenance-chip provenance-chip--ai" data-block="ProvenanceChip">Approved company blocks only</span>
+      </header>
+      <div class="app-shell__content">
+        <div data-block="AiAssistPanel">
+          <div class="ai-chat">
+            <div class="ai-chat__messages" id="ai-messages">
+              <div class="ai-msg ai-msg--bot">
+                I only compose from <strong>Acme company building blocks</strong> (tools / skills / agents).
+                What do you want to automate?
+              </div>
+              <div class="ai-msg ai-msg--user">
+                Resolve a user from Okta then post a Slack update
+              </div>
+              <div class="ai-msg ai-msg--bot" id="ai-match-msg">
+                Best match: <strong id="match-inline">Resolve user from Okta</strong> (company skill)
+                + <strong>Post structured Slack update</strong> (company tool).
+                <div class="ai-msg__trust">✓ Trust: grounded in approved building blocks — not unconstrained generation.</div>
+              </div>
+            </div>
+            <div class="ai-chat__composer">
+              <input class="ai-chat__input" id="ai-input" type="text" placeholder="Describe a workflow…" />
+              <button type="button" class="btn btn--primary" id="ai-send" data-block="Button">Send</button>
+            </div>
+            <p class="muted" style="margin-top:12px;font-size:12px">
+              Unhappy path: try sending “add SSH bootstrap” — AI refuses non-approved units.
+            </p>
+          </div>
+
+          <aside class="ai-match" id="ai-match-panel">
+            <div class="ai-match__label">Approved building block match</div>
+            <div class="ai-match__card" data-block="TemplateCard">
+              <span class="badge badge--golden">Published</span>
+              <h3 id="match-name">Resolve user from Okta</h3>
+              <p id="match-desc">Given a work email, return Okta profile fields.</p>
+              <div class="template-card__ownership" id="match-owner" style="margin-top:8px"></div>
+            </div>
+            <div class="ai-match__trust">
+              AI will <strong>compose from approved company blocks</strong>, not invent unreviewed units.
+              Same rails as gallery and MCP.
+            </div>
+            <button type="button" class="btn btn--primary btn--lg" id="btn-confirm-ai" data-block="Button">
+              Confirm &amp; create
+            </button>
+            <button type="button" class="btn btn--ghost" id="btn-try-bad" data-out-of-policy="Suggested unit “SSH bootstrap script” is not an approved company building block.">
+              Simulate out-of-policy suggestion
+            </button>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-ai-confirm" data-block="Modal" aria-hidden="true">
+    <div class="modal" role="dialog">
+      <div class="modal__header">
+        <h2 class="modal__title">Confirm AI compose</h2>
+        <button type="button" class="icon-btn" data-close-modal="modal-ai-confirm">✕</button>
+      </div>
+      <div class="modal__body">
+        <p>Create a workflow from company block <strong id="confirm-name">Resolve user from Okta</strong>?</p>
+        <div class="notice">Provenance: <em>Created with AI from company building block</em>.</div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" data-close-modal="modal-ai-confirm">Cancel</button>
+        <button type="button" class="btn btn--primary" id="btn-ai-go">Create workflow</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/state.js?v=20261006230000"></script>
+  <script src="../../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      if (ProtoState.getProtoVersion() !== "v3") {
+        ProtoState.setProtoVersion("v3", { reload: false });
+      }
+      if (!ProtoState.getGoldenBlocks().length) {
+        ProtoState.ensureDemoBlocks();
+      }
+
+      const match =
+        ProtoState.getBlock("bb-okta-resolve") || ProtoState.getGoldenBlocks()[0];
+      if (match) {
+        document.getElementById("match-name").textContent = match.name;
+        document.getElementById("match-inline").textContent = match.name;
+        document.getElementById("match-desc").textContent = match.description;
+        document.getElementById("confirm-name").textContent = match.name;
+        document.getElementById("match-owner").textContent =
+          "Owner: " + (match.owner || "") + " · v" + match.version;
+      }
+
+      document.getElementById("btn-confirm-ai").addEventListener("click", function () {
+        ProtoUI.openModal("modal-ai-confirm");
+      });
+
+      document.getElementById("btn-ai-go").addEventListener("click", function () {
+        if (match) ProtoState.insertBlockIntoWorkflow(match.id);
+        ProtoState.setProvenance({
+          type: "ai",
+          blockId: match ? match.id : null,
+          blockName: match ? match.name : "Company block",
+          templateName: match ? match.name : "Company block",
+          owner: match ? match.owner : null,
+          version: match ? match.version : null,
+        });
+        ProtoUI.toast("Workflow composed from approved company blocks via AI", "success");
+        setTimeout(function () {
+          window.location.href = "07-compose-canvas.html?proto=v3";
+        }, 400);
+      });
+
+      document.getElementById("ai-send").addEventListener("click", function () {
+        const v = document.getElementById("ai-input").value.trim();
+        if (!v) return;
+        const box = document.getElementById("ai-messages");
+        const user = document.createElement("div");
+        user.className = "ai-msg ai-msg--user";
+        user.textContent = v;
+        box.appendChild(user);
+        const lower = v.toLowerCase();
+        if (
+          lower.indexOf("ssh") >= 0 ||
+          lower.indexOf("execute command") >= 0 ||
+          lower.indexOf("unapproved") >= 0
+        ) {
+          ProtoUI.showOutOfPolicyBlock({
+            reason:
+              "AI will not add “" +
+              v.slice(0, 48) +
+              "” — it is not an approved company building block.",
+          });
+          document.getElementById("ai-input").value = "";
+          return;
+        }
+        const bot = document.createElement("div");
+        bot.className = "ai-msg ai-msg--bot";
+        bot.textContent =
+          "I’ll stick to approved company blocks. Confirm the match on the right, or browse the gallery.";
+        box.appendChild(bot);
+        document.getElementById("ai-input").value = "";
+      });
+    })();
+  </script>
+</body>
+</html>

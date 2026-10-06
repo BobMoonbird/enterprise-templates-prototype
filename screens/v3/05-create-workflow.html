@@ -1,0 +1,124 @@
+<!--
+PROTOTYPE SCREEN: V3-05 — Create workflow (blank vs approved blocks)
+BLOCKS: ProtoChrome, AppShell, CreateEmptyState, Modal, Button
+JOURNEY BEAT: Member denied blank — modal: request access vs start from approved block
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3-05 · Create from approved blocks</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006230000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="06-blocks-gallery.html?proto=v3"><span class="nav-item__icon">◈</span> Building blocks</a>
+        <a class="nav-item is-active" href="05-create-workflow.html?proto=v3"><span class="nav-item__icon">＋</span> Create</a>
+      </nav>
+      <div class="app-shell__footer">Short path · V3</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Create workflow</strong>
+        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Member</span></span>
+      </header>
+      <div class="app-shell__content">
+        <div id="member-banner" class="copy-rail-banner">
+          <span>🔒</span>
+          <div>
+            <strong>Member create/copy rails</strong> — start from approved company building blocks
+            or AI grounded in those blocks. Blank canvas create is denied by Admin policy.
+          </div>
+        </div>
+
+        <div data-block="CreateEmptyState">
+          <h1 class="create-empty__title">How do you want to start?</h1>
+          <p class="create-empty__sub secondary">
+            Company building blocks are the system of record — not the public gallery.
+          </p>
+          <div class="create-options" id="create-options">
+            <button type="button" class="create-option is-clickable" id="opt-blank" style="text-align:left;width:100%;font:inherit;color:inherit;cursor:pointer">
+              <div class="create-option__icon">◻</div>
+              <h3>Blank workflow</h3>
+              <p>Start from an empty canvas. Members: blocked — request access or use a block.</p>
+            </button>
+            <a class="create-option is-clickable lib-create-primary" href="06-blocks-gallery.html?proto=v3" id="opt-library">
+              <div class="create-option__icon">◈</div>
+              <h3>From approved building blocks</h3>
+              <p>Browse tools / skills / agents certified for Acme.</p>
+            </a>
+            <a class="create-option is-clickable" href="08-ai-assist.html?proto=v3">
+              <div class="create-option__icon">✦</div>
+              <h3>Create with AI</h3>
+              <p>AI offers only approved company blocks, then asks you to confirm.</p>
+            </a>
+          </div>
+          <p class="muted" style="margin-top:24px;font-size:12px">
+            Proto note: click <strong>Blank workflow</strong> as Member for the denied-create modal.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-blank-denied" data-block="Modal" aria-hidden="true">
+    <div class="modal" role="dialog">
+      <div class="modal__header">
+        <h2 class="modal__title">Blank create not allowed</h2>
+        <button type="button" class="icon-btn" data-close-modal="modal-blank-denied">✕</button>
+      </div>
+      <div class="modal__body">
+        <p class="secondary">
+          Your role can copy and compose from approved company building blocks only.
+          Choose how to continue:
+        </p>
+        <div class="notice" style="margin-top:12px">
+          Same create/copy rails apply if you try blank create via AI or MCP.
+        </div>
+      </div>
+      <div class="modal__footer" style="flex-wrap:wrap;gap:8px">
+        <button type="button" class="btn btn--secondary" id="btn-request-blank">Request blank access</button>
+        <a class="btn btn--primary" href="06-blocks-gallery.html?proto=v3">Start from approved block</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/state.js?v=20261006230000"></script>
+  <script src="../../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      if (ProtoState.getProtoVersion() !== "v3") {
+        ProtoState.setProtoVersion("v3", { reload: false });
+      }
+      if (ProtoState.get().role !== "builder" && ProtoState.get().role !== "admin") {
+        ProtoState.setRole("member");
+      }
+      ProtoUI.applyRoleChrome();
+
+      document.getElementById("opt-blank").addEventListener("click", function () {
+        if (ProtoState.get().role === "member") {
+          ProtoUI.openModal("modal-blank-denied");
+          return;
+        }
+        window.location.href = "02-builder-rails.html?proto=v3";
+      });
+
+      document.getElementById("btn-request-blank").addEventListener("click", function () {
+        ProtoUI.closeModal("modal-blank-denied");
+        ProtoUI.toast("Access requested — Admin notified (#automation-coe)", "success");
+      });
+    })();
+  </script>
+</body>
+</html>

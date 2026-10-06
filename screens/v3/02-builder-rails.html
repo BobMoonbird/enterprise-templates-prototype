@@ -1,0 +1,163 @@
+<!--
+PROTOTYPE SCREEN: V3-02 — Build reusable tool/skill/agent under rails
+BLOCKS: ProtoChrome, WorkflowEditorChrome, NodePalette, PolicyRail, LifecycleBanner, Button, Menu, Modal, Toast
+JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3-02 · Build under rails</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006230000" />
+</head>
+<body>
+  <div data-block="WorkflowEditorChrome">
+    <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner">
+      <span class="badge badge--draft">Draft</span>
+      <span>Okta user resolve · reusable skill candidate — not yet a company block</span>
+    </div>
+    <div class="policy-rail" data-block="PolicyRail">
+      <span class="policy-rail__mark">Rails</span>
+      <span>
+        Create/copy policy: prefer company building blocks. Out-of-policy units soft-block
+        with request access — same on UI · AI · MCP.
+      </span>
+    </div>
+    <header class="editor-topbar">
+      <a class="icon-btn" href="../../index.html?proto=v3" title="Map" data-block="IconButton">←</a>
+      <span class="editor-topbar__name">Okta user resolve</span>
+      <span class="editor-topbar__meta">Personal · saved 1m ago</span>
+      <span class="secondary" style="font-size:12px;margin-left:8px">Acting as <span data-role-label>Builder</span></span>
+      <div class="editor-topbar__actions">
+        <div class="relative role-show-submit">
+          <button type="button" class="btn btn--primary btn--sm" id="btn-submit-menu" data-block="Button">
+            Submit ▾
+          </button>
+          <div class="menu" id="submit-menu" data-block="Menu" style="right:0;top:36px;width:320px">
+            <button type="button" class="menu-item is-accent" id="menu-mark-block">
+              <div>
+                <div class="menu-item__title">Mark as company building block</div>
+                <div class="menu-item__desc">Submit for Admin approval — not live until approved</div>
+              </div>
+            </button>
+            <div class="menu-divider"></div>
+            <button type="button" class="menu-item" disabled style="opacity:0.4;pointer-events:none">
+              <div>
+                <div class="menu-item__title">Publish to community</div>
+                <div class="menu-item__desc">Blocked for enterprise instance</div>
+              </div>
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn btn--secondary btn--sm">Execute</button>
+      </div>
+    </header>
+    <div class="editor-body">
+      <aside data-block="NodePalette">
+        <div class="palette-header">
+          <div>Units</div>
+          <div class="palette-header__sub">Company blocks + primitives</div>
+        </div>
+        <div class="palette-list" id="palette-list"></div>
+      </aside>
+      <div class="editor-canvas" id="canvas">
+        <div class="canvas-node" style="left:80px;top:120px">
+          <div class="canvas-node__type">Trigger</div>
+          <div class="canvas-node__name">Webhook</div>
+        </div>
+        <div class="canvas-wire" style="left:220px;top:148px;width:80px"></div>
+        <div class="canvas-node" style="left:300px;top:120px">
+          <div class="canvas-node__type">Identity · allowed</div>
+          <div class="canvas-node__name">Okta</div>
+        </div>
+        <div class="canvas-wire" style="left:440px;top:148px;width:80px"></div>
+        <div class="canvas-node" style="left:520px;top:120px">
+          <div class="canvas-node__type">Core</div>
+          <div class="canvas-node__name">Code</div>
+        </div>
+        <p class="secondary" style="position:absolute;left:80px;top:240px;max-width:360px;font-size:12px">
+          Tip: click a <strong>Blocked</strong> palette item for the soft-block / request-access beat.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/state.js?v=20261006230000"></script>
+  <script src="../../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      if (ProtoState.getProtoVersion() !== "v3") {
+        ProtoState.setProtoVersion("v3", { reload: false });
+      }
+      if (ProtoState.get().role !== "builder" && ProtoState.get().role !== "admin") {
+        ProtoState.setRole("builder");
+        ProtoUI.applyRoleChrome();
+      }
+
+      function renderPalette() {
+        const core = ProtoState.CORE_PALETTE || [];
+        const integrations = ProtoState.getAllowedNodes().slice(0, 5);
+        const blocked = ProtoState.getBlockedNodes();
+        let html = '<div class="palette-section-label">Core</div>';
+        html += core
+          .map(function (n) {
+            return (
+              '<div class="palette-node is-clickable"><span>' +
+              (n.icon || "") +
+              "</span><span>" +
+              n.name +
+              "</span></div>"
+            );
+          })
+          .join("");
+        html += '<div class="palette-section-label">Integrations</div>';
+        html += integrations
+          .map(function (n) {
+            return (
+              '<div class="palette-node is-clickable"><span>' +
+              (n.icon || "") +
+              "</span><span>" +
+              n.name +
+              "</span></div>"
+            );
+          })
+          .join("");
+        html += '<div class="palette-section-label">Blocked</div>';
+        html += blocked
+          .map(function (n) {
+            return (
+              '<div class="palette-node is-blocked is-clickable" data-node-blocked="' +
+              n.id +
+              '"><span>' +
+              (n.icon || "") +
+              "</span><span>" +
+              n.name +
+              '</span><span class="palette-node__hint">Blocked</span></div>'
+            );
+          })
+          .join("");
+        document.getElementById("palette-list").innerHTML = html;
+      }
+
+      const menuBtn = document.getElementById("btn-submit-menu");
+      const menu = document.getElementById("submit-menu");
+      menuBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        menu.classList.toggle("is-open");
+      });
+      document.addEventListener("click", function () {
+        menu.classList.remove("is-open");
+      });
+      document.getElementById("menu-mark-block").addEventListener("click", function () {
+        window.location.href = "03-mark-company-block.html?proto=v3";
+      });
+
+      renderPalette();
+    })();
+  </script>
+</body>
+</html>

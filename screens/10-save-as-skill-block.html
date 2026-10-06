@@ -1,0 +1,221 @@
+<!--
+PROTOTYPE SCREEN: 10 — Save selection as a versioned skill or block
+BLOCKS: ProtoChrome, RoleSwitcher, AppShell, LifecycleBanner, Button, Toast
+JOURNEY BEAT: Builder owns skills/blocks like code (version + changelog + owner)
+SPUR: from editor Submit / Save as skill · block
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10 · Save as skill or block</title>
+  <link rel="stylesheet" href="../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../css/screens.css?v=20261006230000" />
+</head>
+<body class="screen-submit">
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
+        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
+        <a class="nav-item is-active" href="02-builder-editor.html"><span class="nav-item__icon">✎</span> Editor</a>
+      </nav>
+      <div class="app-shell__footer">Instance · enterprise</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Save as skill or block</strong>
+        <a class="btn btn--ghost btn--sm" href="02-builder-editor.html">← Back to editor</a>
+      </header>
+      <div class="app-shell__content">
+        <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner" style="border-radius:8px;margin-bottom:24px;border:1px solid var(--border);max-width:560px">
+          <span class="badge badge--skill">Versioned</span>
+          <span>
+            Skills &amp; blocks are <strong>company-owned code units</strong> — fixed I/O, owner, changelog.
+            Not a one-off copy of a template.
+          </span>
+        </div>
+
+        <div class="submit-vs-publish" style="margin-bottom:24px">
+          <div class="contrast-card contrast-card--good">
+            <strong>Skill</strong>
+            Named capability with locked inputs/outputs. AI and builders call it; they don’t reinvent the contract.
+          </div>
+          <div class="contrast-card contrast-card--good">
+            <strong>Block</strong>
+            Certified subflow you drop into many workflows. Same version pin everywhere it is used.
+          </div>
+        </div>
+
+        <form id="save-skill-form" class="submit-form" data-block="SaveSkillForm">
+          <div class="submit-form__fields">
+            <div class="field">
+              <label>Type</label>
+              <div class="kind-toggle" role="group" aria-label="Skill or block">
+                <button type="button" class="kind-toggle__btn is-active" data-kind="skill">Skill</button>
+                <button type="button" class="kind-toggle__btn" data-kind="block">Block</button>
+              </div>
+              <input type="hidden" id="sk-kind" value="skill" />
+            </div>
+            <div class="field">
+              <label for="sk-name">Name</label>
+              <input id="sk-name" value="Resolve user from Okta + Jira" required />
+            </div>
+            <div class="field">
+              <label for="sk-desc">Description</label>
+              <textarea id="sk-desc" required>Given a Jira account or work email, fetch Okta profile and return display_name, department, manager_email, okta_status, jira_account_id.</textarea>
+            </div>
+            <div class="field">
+              <label for="sk-inputs">Inputs (contract)</label>
+              <input id="sk-inputs" value="work_email · jira_account_id?" />
+              <span class="field-hint">Fixed signature — callers and AI must match this.</span>
+            </div>
+            <div class="field">
+              <label for="sk-outputs">Outputs (contract)</label>
+              <input id="sk-outputs" value="display_name · department · manager_email · okta_status · jira_account_id" />
+            </div>
+            <div class="field">
+              <label for="sk-version">Version</label>
+              <input id="sk-version" value="1.0" />
+              <span class="field-hint">Bump when the contract or behavior changes — like a package release.</span>
+            </div>
+            <div class="field">
+              <label for="sk-owner">Owner</label>
+              <input id="sk-owner" value="You" required />
+            </div>
+            <div class="field">
+              <label for="sk-note">Changelog note</label>
+              <textarea id="sk-note">Initial company skill from AP invoice matcher selection · allowlisted Okta + Jira only.</textarea>
+            </div>
+          </div>
+          <div class="version-preview" id="version-preview">
+            <div class="version-preview__label">Will publish as</div>
+            <div class="version-preview__line">
+              <span class="badge badge--skill" id="preview-kind">Skill</span>
+              <strong id="preview-name">Resolve user from Okta + Jira</strong>
+              <span class="version-chip" id="preview-ver">v1.0</span>
+            </div>
+            <div class="version-preview__meta secondary" id="preview-meta">Owner You · company library</div>
+          </div>
+          <div class="submit-form__actions">
+            <a class="btn btn--ghost" href="02-builder-editor.html">Cancel</a>
+            <button type="submit" class="btn btn--primary" data-block="Button">Save to company library</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/state.js?v=20261006230000"></script>
+  <script src="../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      if (ProtoState.get().role === "member") {
+        // Save is a Builder beat — flip persona for the demo
+        ProtoState.setRole("builder");
+        const sel = document.querySelector(".role-switcher__select");
+        if (sel) sel.value = "builder";
+        ProtoUI.applyRoleChrome();
+      }
+
+      function syncPreview() {
+        const kind = document.getElementById("sk-kind").value;
+        document.getElementById("preview-kind").textContent = kind === "block" ? "Block" : "Skill";
+        document.getElementById("preview-kind").className =
+          "badge " + (kind === "block" ? "badge--block" : "badge--skill");
+        document.getElementById("preview-name").textContent =
+          document.getElementById("sk-name").value || "Untitled";
+        document.getElementById("preview-ver").textContent =
+          "v" + (document.getElementById("sk-version").value || "1.0");
+        document.getElementById("preview-meta").textContent =
+          "Owner " + (document.getElementById("sk-owner").value || "You") + " · company library";
+      }
+
+      document.querySelectorAll("[data-kind]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          document.querySelectorAll("[data-kind]").forEach(function (b) {
+            b.classList.remove("is-active");
+          });
+          btn.classList.add("is-active");
+          document.getElementById("sk-kind").value = btn.getAttribute("data-kind");
+          if (btn.getAttribute("data-kind") === "block") {
+            document.getElementById("sk-name").value = "Write weekly R&D tracker review";
+            document.getElementById("sk-desc").value =
+              "Certified subflow: pull R&D tracker updates for the week, draft a structured review, post to the ops channel.";
+            document.getElementById("sk-inputs").value = "week_start · tracker_project";
+            document.getElementById("sk-outputs").value = "review_markdown · posted_message_url";
+            document.getElementById("sk-note").value =
+              "Block extracted from R&D ops workflow · pinned Jira + Slack allowlist.";
+          } else {
+            document.getElementById("sk-name").value = "Resolve user from Okta + Jira";
+            document.getElementById("sk-desc").value =
+              "Given a Jira account or work email, fetch Okta profile and return display_name, department, manager_email, okta_status, jira_account_id.";
+            document.getElementById("sk-inputs").value = "work_email · jira_account_id?";
+            document.getElementById("sk-outputs").value =
+              "display_name · department · manager_email · okta_status · jira_account_id";
+            document.getElementById("sk-note").value =
+              "Initial company skill from AP invoice matcher selection · allowlisted Okta + Jira only.";
+          }
+          syncPreview();
+        });
+      });
+
+      ["sk-name", "sk-version", "sk-owner"].forEach(function (id) {
+        document.getElementById(id).addEventListener("input", syncPreview);
+      });
+      syncPreview();
+
+      function parseContract(raw) {
+        return String(raw || "")
+          .split("·")
+          .map(function (s) {
+            return s.trim();
+          })
+          .filter(Boolean)
+          .map(function (name) {
+            const optional = /\?$/.test(name);
+            return {
+              name: name.replace(/\?$/, ""),
+              type: "string",
+              required: !optional,
+            };
+          });
+      }
+
+      document.getElementById("save-skill-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const item = ProtoState.saveAsSkillBlock({
+          kind: document.getElementById("sk-kind").value,
+          name: document.getElementById("sk-name").value,
+          description: document.getElementById("sk-desc").value,
+          version: document.getElementById("sk-version").value || "1.0",
+          owner: document.getElementById("sk-owner").value,
+          contributors: ["You"],
+          inputs: parseContract(document.getElementById("sk-inputs").value),
+          outputs: parseContract(document.getElementById("sk-outputs").value).map(function (o) {
+            delete o.required;
+            return o;
+          }),
+          caps: ["Okta", "Jira"],
+          changelogNote: document.getElementById("sk-note").value,
+        });
+        ProtoUI.toast(
+          "Saved " + item.kind + " “" + item.name + "” as v" + item.version + " · owned by " + item.owner,
+          "success"
+        );
+        setTimeout(function () {
+          window.location.href = "10b-add-skill-block.html";
+        }, 700);
+      });
+    })();
+  </script>
+</body>
+</html>

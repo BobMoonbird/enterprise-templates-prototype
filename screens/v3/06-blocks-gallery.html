@@ -1,0 +1,211 @@
+<!--
+PROTOTYPE SCREEN: V3-06 — Building blocks gallery
+BLOCKS: ProtoChrome, AppShell, GalleryToolbar, TemplateCard, Button, Toast
+JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/agents
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3-06 · Building blocks gallery</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006230000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item is-active" href="06-blocks-gallery.html?proto=v3"><span class="nav-item__icon">◈</span> Building blocks</a>
+        <a class="nav-item" href="05-create-workflow.html?proto=v3"><span class="nav-item__icon">＋</span> Create</a>
+        <a class="nav-item" href="01-enable-library.html?proto=v3"><span class="nav-item__icon">⚙</span> Settings</a>
+      </nav>
+      <div class="app-shell__footer">Short path · V3</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>Company building blocks</strong>
+        <div class="flex gap-2">
+          <a class="btn btn--ghost btn--sm" href="08-ai-assist.html?proto=v3">Try AI</a>
+          <a class="btn btn--secondary btn--sm" href="09-mcp.html?proto=v3">MCP rails</a>
+        </div>
+      </header>
+      <div class="app-shell__content">
+        <div class="page-header">
+          <h1>Acme building blocks</h1>
+          <p>
+            Tools, skills, and agents certified for the org — not full workflow SoR,
+            and not the public community gallery.
+          </p>
+        </div>
+
+        <div class="lib-role-banner" id="role-banner"></div>
+        <div class="notice" id="lib-notice" hidden>
+          Building-blocks library is off for this instance.
+          <a href="01-enable-library.html?proto=v3" style="color:var(--accent);margin-left:8px">Settings →</a>
+        </div>
+
+        <div data-block="GalleryToolbar" id="gallery-toolbar">
+          <input class="gallery-search" type="search" id="gallery-search" placeholder="Search tools, skills, agents…" />
+          <button type="button" class="filter-chip is-active" data-filter="all">All</button>
+          <button type="button" class="filter-chip" data-filter="tool">Tools</button>
+          <button type="button" class="filter-chip" data-filter="skill">Skills</button>
+          <button type="button" class="filter-chip" data-filter="agent">Agents</button>
+        </div>
+
+        <div id="empty-state" class="v3-empty-library" hidden>
+          <h3>No company building blocks yet</h3>
+          <p class="secondary">
+            The library is enabled, but nothing is published. Builders submit blocks;
+            Admins approve. The <strong>public gallery</strong> is still discovery-only —
+            it is not Acme’s system of record.
+          </p>
+          <div class="flex gap-2" style="justify-content:center;margin-top:16px;flex-wrap:wrap">
+            <button type="button" class="btn btn--secondary btn--sm" id="btn-seed-demo">
+              Seed demo blocks (skip ahead)
+            </button>
+            <a class="btn btn--ghost btn--sm" href="02-builder-rails.html?proto=v3">Go to Builder →</a>
+          </div>
+        </div>
+
+        <div class="template-grid" id="template-grid"></div>
+
+        <div style="margin-top:24px" class="flex gap-3" id="next-row" hidden>
+          <a class="btn btn--primary" href="07-compose-canvas.html?proto=v3">Next: Compose on canvas →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/state.js?v=20261006230000"></script>
+  <script src="../../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      if (ProtoState.getProtoVersion() !== "v3") {
+        ProtoState.setProtoVersion("v3", { reload: false });
+      }
+
+      let filter = "all";
+      let query = "";
+
+      function visibleBlocks() {
+        const role = ProtoState.get().role;
+        let list = ProtoState.getBlocks();
+        if (role === "member") {
+          list = list.filter(function (b) {
+            return b.status === "golden";
+          });
+        } else if (role === "builder") {
+          list = list.filter(function (b) {
+            return (
+              b.status === "golden" ||
+              ((b.owner === "You" || b.author === "You") &&
+                (b.status === "pending" || b.status === "draft"))
+            );
+          });
+        }
+        if (filter !== "all") {
+          list = list.filter(function (b) {
+            return b.kind === filter;
+          });
+        }
+        if (query) {
+          const q = query.toLowerCase();
+          list = list.filter(function (b) {
+            return (
+              (b.name || "").toLowerCase().indexOf(q) >= 0 ||
+              (b.description || "").toLowerCase().indexOf(q) >= 0
+            );
+          });
+        }
+        return list;
+      }
+
+      function render() {
+        const on = ProtoState.get().libraryEnabled;
+        document.getElementById("lib-notice").hidden = on;
+        document.getElementById("gallery-toolbar").hidden = !on;
+        document.getElementById("role-banner").innerHTML =
+          ProtoState.get().role === "member"
+            ? "<strong>Member</strong> — approved (published) building blocks only."
+            : ProtoState.get().role === "builder"
+              ? "<strong>Builder</strong> — published blocks plus your pending submissions."
+              : "<strong>Admin</strong> — full pipeline visibility.";
+
+        const grid = document.getElementById("template-grid");
+        const empty = document.getElementById("empty-state");
+        const nextRow = document.getElementById("next-row");
+
+        if (!on) {
+          grid.innerHTML = "";
+          empty.hidden = true;
+          nextRow.hidden = true;
+          return;
+        }
+
+        const list = visibleBlocks();
+        if (!list.length) {
+          grid.innerHTML = "";
+          empty.hidden = false;
+          nextRow.hidden = true;
+          return;
+        }
+
+        empty.hidden = true;
+        nextRow.hidden = false;
+        grid.innerHTML = list
+          .map(function (b) {
+            const href =
+              b.status === "golden"
+                ? "07-compose-canvas.html?proto=v3&block=" + encodeURIComponent(b.id)
+                : "#";
+            const card = ProtoUI.templateCardHtml(b, { href: href });
+            if (b.status === "golden") {
+              return (
+                '<div class="template-card-wrap">' +
+                card +
+                '<button type="button" class="btn btn--primary btn--sm" style="margin-top:8px" data-use-block="' +
+                b.id +
+                '">Use block</button></div>'
+              );
+            }
+            return card;
+          })
+          .join("");
+      }
+
+      document.querySelectorAll("[data-filter]").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          filter = chip.getAttribute("data-filter");
+          document.querySelectorAll("[data-filter]").forEach(function (c) {
+            c.classList.toggle("is-active", c === chip);
+          });
+          render();
+        });
+      });
+
+      document.getElementById("gallery-search").addEventListener("input", function (e) {
+        query = e.target.value.trim();
+        render();
+      });
+
+      document.getElementById("btn-seed-demo").addEventListener("click", function () {
+        ProtoState.ensureDemoBlocks();
+        ProtoUI.toast("Seeded demo building blocks", "success");
+        render();
+      });
+
+      document.addEventListener("proto:rerender", render);
+      document.addEventListener("proto:rolechange", render);
+      render();
+    })();
+  </script>
+</body>
+</html>

@@ -1,19 +1,18 @@
 <!--
-PROTOTYPE SCREEN: 03b — Approve a pending internal template
-BLOCKS: ProtoChrome, RoleSwitcher, AppShell, SettingsLayout, ApprovalQueue, Button, Toast, TemplateCard (status)
-JOURNEY BEAT: Pending → Approve / Reject / Request changes → Golden
-MIRO (Frame 4): admin key view = existing templates + pending; owner/contributors/desc
+PROTOTYPE SCREEN: V3-04 — Approve pending building block
+BLOCKS: ProtoChrome, AppShell, SettingsLayout, ApprovalQueue, Button, Toast
+JOURNEY BEAT: Pending → Approve → published company block
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>03b · Approve a pending internal template</title>
-  <link rel="stylesheet" href="../css/tokens.css?v=20261006230000" />
-  <link rel="stylesheet" href="../css/base.css?v=20261006230000" />
-  <link rel="stylesheet" href="../css/components.css?v=20261006230000" />
-  <link rel="stylesheet" href="../css/screens.css?v=20261006230000" />
+  <title>V3-04 · Approve building block</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006230000" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -23,49 +22,45 @@ MIRO (Frame 4): admin key view = existing templates + pending; owner/contributor
         <span>n8n · Acme</span>
       </div>
       <nav class="app-shell__nav">
-        <a class="nav-item" href="04-overview.html"><span class="nav-item__icon">▣</span> Overview</a>
-        <a class="nav-item" href="06-company-library.html"><span class="nav-item__icon">◈</span> Templates</a>
-        <a class="nav-item is-active" href="03b-approval-queue.html"><span class="nav-item__icon">⚙</span> Settings</a>
+        <a class="nav-item" href="06-blocks-gallery.html?proto=v3"><span class="nav-item__icon">◈</span> Building blocks</a>
+        <a class="nav-item is-active" href="04-approve-block.html?proto=v3"><span class="nav-item__icon">⚙</span> Settings</a>
       </nav>
-      <div class="app-shell__footer">Instance · enterprise</div>
+      <div class="app-shell__footer">Short path · V3</div>
     </aside>
 
     <div class="app-shell__main">
       <header class="app-shell__topbar">
-        <strong>Template approvals</strong>
+        <strong>Building block approvals</strong>
         <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Admin</span></span>
       </header>
       <div class="app-shell__content">
         <div data-block="SettingsLayout">
           <nav class="settings-nav">
             <div class="settings-nav__title">Governance</div>
-            <a class="settings-nav-item" href="00-security-allowlist.html">Node allowlist</a>
-            <a class="settings-nav-item" href="01-admin-roles.html">Roles</a>
-            <a class="settings-nav-item" href="01b-library-enable.html">Company library</a>
-            <a class="settings-nav-item is-active" href="03b-approval-queue.html">Template approvals</a>
+            <a class="settings-nav-item" href="01-enable-library.html?proto=v3">Building blocks</a>
+            <a class="settings-nav-item is-active" href="04-approve-block.html?proto=v3">Block approvals</a>
           </nav>
           <section class="settings-panel" data-block="ApprovalQueue">
             <div class="settings-panel__header">
-              <h2>Admin library ops</h2>
+              <h2>Approve company building blocks</h2>
               <p>
-                Key admin views: <strong>existing templates</strong> and
-                <strong>items pending approval</strong>. Approve promotes to Golden in the
-                company library. Reject returns to Draft. Request changes keeps Pending.
+                Pending items are not visible to Members. Approve publishes to the
+                building-blocks library (tools / skills / agents).
               </p>
             </div>
 
             <div class="lib-inventory-grid" id="inventory-stats"></div>
 
             <div class="tabs">
-              <button type="button" class="tab is-active" data-tab="pending">Pending approvals</button>
-              <button type="button" class="tab" data-tab="library">Existing templates</button>
+              <button type="button" class="tab is-active" data-tab="pending">Pending</button>
+              <button type="button" class="tab" data-tab="published">Published</button>
             </div>
             <div class="queue-list" id="queue-list"></div>
             <div style="margin-top:24px" class="flex gap-3">
-              <a class="btn btn--primary" id="next-member" href="05-create-empty.html?role=member">
+              <a class="btn btn--primary" id="next-member" href="05-create-workflow.html?proto=v3&role=member">
                 Next: Create as Member →
               </a>
-              <a class="btn btn--ghost" href="06-company-library.html">Open unified library</a>
+              <a class="btn btn--ghost" href="06-blocks-gallery.html?proto=v3">Open gallery</a>
             </div>
           </section>
         </div>
@@ -73,21 +68,20 @@ MIRO (Frame 4): admin key view = existing templates + pending; owner/contributor
     </div>
   </div>
 
-  <script src="../js/state.js?v=20261006230000"></script>
-  <script src="../js/interactions.js?v=20261006230000"></script>
+  <script src="../../js/state.js?v=20261006230000"></script>
+  <script src="../../js/interactions.js?v=20261006230000"></script>
   <script>
     (function () {
-      if (ProtoState.get().role === "builder" || ProtoState.get().role === "member") {
-        ProtoState.setRole("admin");
-        const sel = document.querySelector(".role-switcher__select");
-        if (sel) sel.value = "admin";
-        ProtoUI.applyRoleChrome();
+      if (ProtoState.getProtoVersion() !== "v3") {
+        ProtoState.setProtoVersion("v3", { reload: false });
       }
+      ProtoState.setRole("admin");
+      ProtoUI.applyRoleChrome();
 
       let tab = "pending";
 
       function ownershipLine(t) {
-        const owner = t.owner || t.author || "—";
+        const owner = t.owner || "—";
         const contribs = (t.contributors || []).filter(function (c) {
           return c && c !== owner;
         });
@@ -99,50 +93,44 @@ MIRO (Frame 4): admin key view = existing templates + pending; owner/contributor
       }
 
       function renderStats() {
-        const all = ProtoState.get().templates;
+        const all = ProtoState.getBlocks();
         const golden = all.filter(function (t) {
           return t.status === "golden";
         }).length;
         const pending = all.filter(function (t) {
           return t.status === "pending";
         }).length;
-        const draft = all.filter(function (t) {
-          return t.status === "draft";
-        }).length;
         document.getElementById("inventory-stats").innerHTML =
           '<div class="lib-inventory-stat"><div class="lib-inventory-stat__n">' +
           golden +
-          '</div><div class="lib-inventory-stat__l">Golden templates</div></div>' +
+          '</div><div class="lib-inventory-stat__l">Published blocks</div></div>' +
           '<div class="lib-inventory-stat"><div class="lib-inventory-stat__n">' +
           pending +
           '</div><div class="lib-inventory-stat__l">Pending approvals</div></div>' +
           '<div class="lib-inventory-stat"><div class="lib-inventory-stat__n">' +
-          draft +
-          '</div><div class="lib-inventory-stat__l">Builder drafts</div></div>';
+          all.length +
+          '</div><div class="lib-inventory-stat__l">Total in pipeline</div></div>';
       }
 
       function render() {
         renderStats();
         const list = document.getElementById("queue-list");
         if (tab === "pending") {
-          const pending = ProtoState.getPending();
+          const pending = ProtoState.getPendingBlocks();
           if (!pending.length) {
             list.innerHTML =
-              '<p class="secondary">Queue clear — all submissions reviewed. Continue to Member create.</p>';
+              '<p class="secondary">Queue clear — approve from a Builder submit, or continue to Member create.</p>';
             return;
           }
           list.innerHTML = pending
             .map(function (t) {
-              const groups = (t.targetGroups || []).length
-                ? '<div class="queue-row__meta lib-future-hint">Recommended for: ' +
-                  t.targetGroups.join(", ") +
-                  " (future)</div>"
-                : "";
               return (
                 '<div class="queue-row is-clickable">' +
                 "<div>" +
                 '<div class="queue-row__title">' +
                 t.name +
+                " " +
+                (ProtoUI.kindBadge ? ProtoUI.kindBadge(t.kind) : "") +
                 " " +
                 ProtoUI.statusBadge("pending") +
                 "</div>" +
@@ -154,10 +142,6 @@ MIRO (Frame 4): admin key view = existing templates + pending; owner/contributor
                 '<div class="queue-row__meta">' +
                 (t.description || "") +
                 "</div>" +
-                '<div class="queue-row__meta">' +
-                (t.nodes || []).join(", ") +
-                "</div>" +
-                groups +
                 (t.submitNote
                   ? '<div class="queue-row__note">“' + t.submitNote + '”</div>'
                   : "") +
@@ -165,7 +149,7 @@ MIRO (Frame 4): admin key view = existing templates + pending; owner/contributor
                 '<div class="queue-row__actions">' +
                 '<button type="button" class="btn btn--success btn--sm" data-approve="' +
                 t.id +
-                '">Approve golden</button>' +
+                '">Approve publish</button>' +
                 '<button type="button" class="btn btn--secondary btn--sm" data-request-changes="' +
                 t.id +
                 '">Request changes</button>' +
@@ -177,11 +161,9 @@ MIRO (Frame 4): admin key view = existing templates + pending; owner/contributor
             })
             .join("");
         } else {
-          const existing = ProtoState.get().templates.filter(function (t) {
-            return t.status === "golden" || t.status === "archived";
-          });
+          const existing = ProtoState.getGoldenBlocks();
           if (!existing.length) {
-            list.innerHTML = '<p class="secondary">No published templates yet.</p>';
+            list.innerHTML = '<p class="secondary">No published building blocks yet.</p>';
             return;
           }
           list.innerHTML = existing
@@ -191,6 +173,8 @@ MIRO (Frame 4): admin key view = existing templates + pending; owner/contributor
                 "<div><div class=\"queue-row__title\">" +
                 t.name +
                 " " +
+                (ProtoUI.kindBadge ? ProtoUI.kindBadge(t.kind) : "") +
+                " " +
                 ProtoUI.statusBadge(t.status) +
                 '</div><div class="queue-row__meta">' +
                 ownershipLine(t) +
@@ -198,11 +182,9 @@ MIRO (Frame 4): admin key view = existing templates + pending; owner/contributor
                 t.category +
                 " · v" +
                 t.version +
-                '</div><div class="queue-row__meta">' +
-                (t.description || "") +
                 "</div></div>" +
                 '<div class="queue-row__actions">' +
-                '<a class="btn btn--secondary btn--sm" href="06-company-library.html">View in library</a>' +
+                '<a class="btn btn--secondary btn--sm" href="06-blocks-gallery.html?proto=v3">View in gallery</a>' +
                 "</div></div>"
               );
             })

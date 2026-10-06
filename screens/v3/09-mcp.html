@@ -1,0 +1,109 @@
+<!--
+PROTOTYPE SCREEN: V3-09 — MCP prefers company building blocks
+BLOCKS: ProtoChrome, AppShell, McpChatVignette, ProvenanceChip, Button, Toast
+JOURNEY BEAT: Same create/copy rails via MCP · out-of-policy refuse
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3-09 · MCP · company blocks</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006230000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006230000" />
+</head>
+<body>
+  <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
+    <aside class="app-shell__sidebar">
+      <div class="app-shell__logo">
+        <span class="app-shell__logo-mark">n8</span>
+        <span>n8n · Acme</span>
+      </div>
+      <nav class="app-shell__nav">
+        <a class="nav-item" href="06-blocks-gallery.html?proto=v3"><span class="nav-item__icon">◈</span> Building blocks</a>
+        <a class="nav-item is-active" href="09-mcp.html?proto=v3"><span class="nav-item__icon">⬡</span> MCP</a>
+      </nav>
+      <div class="app-shell__footer">Short path · V3</div>
+    </aside>
+
+    <div class="app-shell__main">
+      <header class="app-shell__topbar">
+        <strong>MCP · same rails</strong>
+        <span class="provenance-chip provenance-chip--mcp" data-block="ProvenanceChip">Prefers company blocks</span>
+      </header>
+      <div class="app-shell__content">
+        <div class="page-header" style="max-width:720px;margin:0 auto 24px">
+          <h1>Agent path (echo)</h1>
+          <p>
+            MCP does not bypass governance. It lists approved company building blocks
+            and refuses non-approved units — same objects as UI and AI.
+          </p>
+        </div>
+
+        <div data-block="McpChatVignette">
+          <div class="mcp-header">
+            <span class="mcp-header__dot"></span>
+            <strong>Cursor · n8n MCP</strong>
+            <span class="muted" style="margin-left:auto;font-size:12px">tools: list_blocks · compose_from_blocks</span>
+          </div>
+          <div class="mcp-thread">
+            <div class="mcp-bubble mcp-bubble--user">Compose a hire flow using Okta resolve + Slack post</div>
+            <div class="mcp-bubble mcp-bubble--agent">list_blocks(scope="company", status="published", query="okta|slack")
+→ 2 matches: <code>Resolve user from Okta</code> (skill v1.2), <code>Post structured Slack update</code> (tool v2.0)
+
+compose_from_blocks(ids=["bb-okta-resolve","bb-slack-post"])
+✓ Created workflow. Provenance: MCP ← company building blocks.</div>
+            <div class="mcp-bubble mcp-bubble--user">Also add an SSH node to run a bootstrap script</div>
+            <div class="mcp-bubble mcp-bubble--agent">✗ Unit <code>SSH bootstrap</code> is not an approved company building block.
+Same create/copy rails as editor UI and AI. Suggest: use a published company tool/skill instead.</div>
+          </div>
+        </div>
+
+        <div class="result-actions" style="margin-top:32px">
+          <button type="button" class="btn btn--primary" id="btn-mcp-create" data-block="Button">
+            Accept MCP compose → Canvas
+          </button>
+          <button type="button" class="btn btn--secondary" id="btn-mcp-refuse" data-out-of-policy="MCP refused SSH bootstrap — not an approved company building block.">
+            Replay out-of-policy refuse
+          </button>
+          <a class="btn btn--ghost" href="07-compose-canvas.html?proto=v3">Skip to canvas</a>
+          <a class="btn btn--ghost" href="../../index.html?proto=v3">Demo map</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/state.js?v=20261006230000"></script>
+  <script src="../../js/interactions.js?v=20261006230000"></script>
+  <script>
+    (function () {
+      if (ProtoState.getProtoVersion() !== "v3") {
+        ProtoState.setProtoVersion("v3", { reload: false });
+      }
+      if (!ProtoState.getGoldenBlocks().length) {
+        ProtoState.ensureDemoBlocks();
+      }
+
+      document.getElementById("btn-mcp-create").addEventListener("click", function () {
+        const b =
+          ProtoState.getBlock("bb-okta-resolve") || ProtoState.getGoldenBlocks()[0];
+        if (b) ProtoState.insertBlockIntoWorkflow(b.id);
+        ProtoState.setProvenance({
+          type: "mcp",
+          blockId: b ? b.id : null,
+          blockName: b ? b.name : "Company block",
+          templateName: b ? b.name : "Company block",
+          owner: b ? b.owner : null,
+          version: b ? b.version : null,
+        });
+        ProtoUI.toast("MCP composed workflow from company building blocks", "success");
+        setTimeout(function () {
+          window.location.href = "07-compose-canvas.html?proto=v3";
+        }, 400);
+      });
+    })();
+  </script>
+</body>
+</html>
