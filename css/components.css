@@ -430,9 +430,11 @@ body:not([data-role="builder"]):not([data-role="admin"]) .role-show-submit { dis
   margin: var(--space-2) 0;
 }
 
-/* ── Modal ── */
-[data-block="Modal"],
-.modal-backdrop {
+/* ── Modal ──
+   Only .modal-backdrop is a fixed overlay. Do not key off [data-block="Modal"]
+   alone — inline forms used that attribute and became position:fixed overlays. */
+.modal-backdrop,
+.modal-backdrop[data-block="Modal"] {
   position: fixed;
   inset: 0;
   z-index: 900;
@@ -1648,7 +1650,7 @@ body:not([data-role="builder"]):not([data-role="admin"]) .role-show-submit { dis
   color: var(--text-secondary);
 }
 
-.field input,
+.field input:not([type="checkbox"]):not([type="radio"]),
 .field textarea,
 .field select {
   display: block;
@@ -1662,7 +1664,7 @@ body:not([data-role="builder"]):not([data-role="admin"]) .role-show-submit { dis
   color: var(--text);
 }
 
-.field input:focus,
+.field input:not([type="checkbox"]):not([type="radio"]):focus,
 .field textarea:focus,
 .field select:focus {
   outline: 2px solid var(--accent);

@@ -471,7 +471,7 @@
 
 /* Submit as template — single left-aligned form column */
 .screen-submit .app-shell__content {
-  max-width: 720px;
+  max-width: 800px;
 }
 
 .submit-form {
@@ -490,7 +490,7 @@
 }
 
 .submit-form--wide {
-  max-width: 640px;
+  max-width: 720px;
 }
 
 .submit-form__fields {
@@ -516,7 +516,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
-  max-width: 560px;
+  max-width: 720px;
 }
 
 .contrast-card {
@@ -1115,6 +1115,20 @@
 }
 
 /* V3-03 — multi-select entities from this workflow */
+.entity-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  text-align: left;
+}
+
+.entity-picker > label {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
 .entity-list__header {
   display: flex;
   align-items: flex-start;
@@ -1133,6 +1147,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  width: 100%;
+  min-width: 0;
+}
+
+.entity-section {
+  width: 100%;
+  min-width: 0;
 }
 
 .entity-section__label {
@@ -1153,15 +1174,22 @@
 }
 
 .entity-row {
-  display: flex;
-  gap: var(--space-3);
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: var(--space-3);
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: var(--space-3) var(--space-4);
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
   transition: border-color 0.12s ease, background 0.12s ease;
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--text);
 }
 
 .entity-row + .entity-row {
@@ -1179,9 +1207,19 @@
 }
 
 .entity-row input[type="checkbox"] {
-  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  padding: 0;
+  border: none;
+  background: transparent;
   accent-color: var(--accent);
-  flex-shrink: 0;
+  justify-self: center;
+}
+
+.entity-row__body {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .entity-row__title {
@@ -1192,12 +1230,17 @@
   font-weight: 600;
   font-size: var(--fs-sm);
   margin-bottom: 4px;
+  line-height: 1.35;
 }
 
 .entity-row__desc {
   font-size: 12px;
+  font-weight: 400;
   color: var(--text-secondary);
   line-height: 1.45;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
 }
 
 .entity-row__caps {

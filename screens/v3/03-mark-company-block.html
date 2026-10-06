@@ -9,10 +9,10 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-03 · Submit for company approval</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261006234130" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261006234130" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261006234130" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261006234130" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006234700" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006234700" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006234700" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006234700" />
 </head>
 <body class="screen-submit">
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -34,7 +34,7 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
         <a class="btn btn--ghost btn--sm" href="02-builder-rails.html?proto=v3">← Back to editor</a>
       </header>
       <div class="app-shell__content">
-        <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner" style="border-radius:8px;margin-bottom:24px;border:1px solid var(--border);max-width:640px">
+        <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner" style="border-radius:8px;margin-bottom:24px;border:1px solid var(--border);max-width:720px">
           <span class="badge badge--draft">Not published</span>
           <span>
             Submitting creates <strong>Pending</strong> company blocks — Members cannot use them
@@ -42,7 +42,7 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
           </span>
         </div>
 
-        <div class="submit-vs-publish" style="margin-bottom:24px;max-width:640px">
+        <div class="submit-vs-publish" style="margin-bottom:24px;max-width:720px">
           <div class="contrast-card contrast-card--good">
             <strong>Submit for company approval</strong>
             Selected entities go to the Admin queue. Stays inside Acme.
@@ -53,9 +53,9 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
           </div>
         </div>
 
-        <form id="submit-form" class="submit-form submit-form--wide" data-block="Modal">
+        <form id="submit-form" class="submit-form submit-form--wide" data-block="SubmitEntityForm">
           <div class="submit-form__fields">
-            <div class="field">
+            <div class="entity-picker">
               <div class="entity-list__header">
                 <div>
                   <label style="margin:0">Entities in this workflow</label>
@@ -91,8 +91,8 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261006234130"></script>
-  <script src="../../js/interactions.js?v=20261006234130"></script>
+  <script src="../../js/state.js?v=20261006234700"></script>
+  <script src="../../js/interactions.js?v=20261006234700"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -157,11 +157,14 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
                   e.id +
                   '"' +
                   checked +
-                  " />" +
+                  ' aria-label="' +
+                  e.name +
+                  '" />' +
                   '<div class="entity-row__body">' +
                   '<div class="entity-row__title">' +
+                  "<span>" +
                   e.name +
-                  " " +
+                  "</span>" +
                   (ProtoUI.kindBadge ? ProtoUI.kindBadge(e.kind) : "") +
                   "</div>" +
                   '<div class="entity-row__desc">' +
