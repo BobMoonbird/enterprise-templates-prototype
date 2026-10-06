@@ -1,7 +1,7 @@
 <!--
 PROTOTYPE SCREEN: V3-07 — Compose with suggested company blocks
-BLOCKS: ProtoChrome, AppShell, WorkflowEditorChrome, ProvenanceChip, Button
-JOURNEY BEAT: Suggested blocks + provenance on canvas
+BLOCKS: ProtoChrome, AppShell, WorkflowEditorChrome, ProvenanceChip, Button, BuildingBlocksSidecar
+JOURNEY BEAT: + opens right sidecar → suggested company blocks → pin + provenance
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -9,10 +9,10 @@ JOURNEY BEAT: Suggested blocks + provenance on canvas
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-07 · Compose with company blocks</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261006233700" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261006233700" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261006233700" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261006233700" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261006234130" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261006234130" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261006234130" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261006234130" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -40,16 +40,12 @@ JOURNEY BEAT: Suggested blocks + provenance on canvas
       </header>
       <div class="app-shell__content">
         <div class="result-stage">
-          <div class="result-hero">
-            <div class="badge badge--golden">Composed from company blocks</div>
+          <div class="result-hero result-hero--left">
             <h1>Canvas with suggested building blocks</h1>
             <p class="secondary">
-              Suggested company units appear below — click to pin. Provenance shows owner + version.
+              Click <strong>+</strong> on the canvas to open company building blocks. Suggested units pin with provenance.
             </p>
-            <p class="lib-provenance-meta" id="result-owner"></p>
           </div>
-
-          <div class="v3-suggest-row" id="suggest-row"></div>
 
           <div class="result-canvas-stub" data-block="WorkflowEditorChrome" id="canvas" style="margin-top:20px;min-height:280px;position:relative">
             <div class="canvas-node" style="left:60px;top:90px">
@@ -62,6 +58,7 @@ JOURNEY BEAT: Suggested blocks + provenance on canvas
               <div class="canvas-node__name">IF</div>
             </div>
             <div id="block-slot"></div>
+            <button type="button" class="canvas-add-btn" id="btn-open-blocks" aria-label="Add building block" title="Add building block">+</button>
           </div>
 
           <div class="result-actions">
@@ -74,8 +71,23 @@ JOURNEY BEAT: Suggested blocks + provenance on canvas
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261006233700"></script>
-  <script src="../../js/interactions.js?v=20261006233700"></script>
+  <div class="blocks-sidecar-backdrop" id="blocks-backdrop" hidden></div>
+  <aside class="blocks-sidecar" id="blocks-sidecar" data-block="BuildingBlocksSidecar" aria-hidden="true" hidden>
+    <div class="blocks-sidecar__header">
+      <div>
+        <div class="blocks-sidecar__title">Building blocks</div>
+        <div class="blocks-sidecar__sub">Company library</div>
+      </div>
+      <button type="button" class="icon-btn" id="btn-close-blocks" aria-label="Close">✕</button>
+    </div>
+    <div class="blocks-sidecar__search">
+      <input class="gallery-search" type="search" id="blocks-search" placeholder="Search building blocks…" autocomplete="off" />
+    </div>
+    <div class="blocks-sidecar__body" id="blocks-list"></div>
+  </aside>
+
+  <script src="../../js/state.js?v=20261006234130"></script>
+  <script src="../../js/interactions.js?v=20261006234130"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -99,12 +111,15 @@ JOURNEY BEAT: Suggested blocks + provenance on canvas
         active = ProtoState.getLastInsertedBlock();
       }
 
+      const sidecar = document.getElementById("blocks-sidecar");
+      const backdrop = document.getElementById("blocks-backdrop");
+      const searchEl = document.getElementById("blocks-search");
+      let allBlocks = ProtoState.getGoldenBlocks();
+
       function renderProvenance(b) {
         const slot = document.getElementById("provenance-slot");
-        const ownerEl = document.getElementById("result-owner");
         if (!b) {
           slot.innerHTML = "";
-          ownerEl.textContent = "";
           return;
         }
         slot.innerHTML =
@@ -113,8 +128,6 @@ JOURNEY BEAT: Suggested blocks + provenance on canvas
           " · v" +
           b.version +
           "</span>";
-        ownerEl.textContent =
-          "Owner: " + (b.owner || "—") + " · pinned version v" + b.version;
         document.getElementById("wf-name").textContent = "Compose · " + b.name;
       }
 
@@ -140,38 +153,123 @@ JOURNEY BEAT: Suggested blocks + provenance on canvas
           "</div></div>";
       }
 
-      function renderSuggestions() {
-        const row = document.getElementById("suggest-row");
-        const blocks = ProtoState.getGoldenBlocks().slice(0, 4);
-        row.innerHTML =
-          '<span class="secondary" style="font-size:12px;align-self:center">Suggested:</span>' +
-          blocks
-            .map(function (b) {
-              return (
-                '<button type="button" class="v3-suggest-chip is-clickable" data-pin="' +
-                b.id +
-                '">' +
-                (ProtoUI.kindBadge ? ProtoUI.kindBadge(b.kind) : "") +
-                " " +
-                b.name +
-                "</button>"
-              );
-            })
-            .join("");
-        row.querySelectorAll("[data-pin]").forEach(function (btn) {
+      function pinBlock(id) {
+        const b = ProtoState.insertBlockIntoWorkflow(id);
+        active = b;
+        renderProvenance(b);
+        renderSlot(b);
+        renderList(searchEl.value || "");
+        ProtoUI.toast("Pinned company " + (b.kind || "block") + " · v" + b.version, "success");
+        closeSidecar();
+      }
+
+      function renderList(query) {
+        const q = (query || "").trim().toLowerCase();
+        const suggested = allBlocks.slice(0, 4).filter(function (b) {
+          if (!q) return true;
+          return (
+            (b.name || "").toLowerCase().indexOf(q) !== -1 ||
+            (b.kind || "").toLowerCase().indexOf(q) !== -1 ||
+            (b.description || "").toLowerCase().indexOf(q) !== -1
+          );
+        });
+        const rest = allBlocks.slice(4).filter(function (b) {
+          if (!q) return true;
+          return (
+            (b.name || "").toLowerCase().indexOf(q) !== -1 ||
+            (b.kind || "").toLowerCase().indexOf(q) !== -1 ||
+            (b.description || "").toLowerCase().indexOf(q) !== -1
+          );
+        });
+
+        function rowHtml(b) {
+          const activeClass = active && active.id === b.id ? " is-active" : "";
+          return (
+            '<button type="button" class="blocks-sidecar__item' +
+            activeClass +
+            '" data-pin="' +
+            b.id +
+            '">' +
+            '<div class="blocks-sidecar__item-main">' +
+            (ProtoUI.kindBadge ? ProtoUI.kindBadge(b.kind) : "") +
+            '<span class="blocks-sidecar__item-name">' +
+            b.name +
+            "</span>" +
+            "</div>" +
+            '<div class="blocks-sidecar__item-meta">v' +
+            b.version +
+            " · " +
+            (b.owner || "") +
+            "</div>" +
+            "</button>"
+          );
+        }
+
+        let html = "";
+        if (suggested.length) {
+          html +=
+            '<div class="blocks-sidecar__section">' +
+            '<div class="blocks-sidecar__section-title">Suggested</div>' +
+            suggested.map(rowHtml).join("") +
+            "</div>";
+        }
+        if (rest.length) {
+          html +=
+            '<div class="blocks-sidecar__section">' +
+            '<div class="blocks-sidecar__section-title">All company blocks</div>' +
+            rest.map(rowHtml).join("") +
+            "</div>";
+        }
+        if (!html) {
+          html = '<p class="secondary blocks-sidecar__empty">No building blocks match.</p>';
+        }
+        document.getElementById("blocks-list").innerHTML = html;
+        document.querySelectorAll("#blocks-list [data-pin]").forEach(function (btn) {
           btn.addEventListener("click", function () {
-            const b = ProtoState.insertBlockIntoWorkflow(btn.getAttribute("data-pin"));
-            active = b;
-            renderProvenance(b);
-            renderSlot(b);
-            ProtoUI.toast("Pinned company " + (b.kind || "block") + " · v" + b.version, "success");
+            pinBlock(btn.getAttribute("data-pin"));
           });
         });
       }
 
+      function openSidecar() {
+        allBlocks = ProtoState.getGoldenBlocks();
+        sidecar.hidden = false;
+        backdrop.hidden = false;
+        sidecar.setAttribute("aria-hidden", "false");
+        sidecar.classList.add("is-open");
+        backdrop.classList.add("is-open");
+        renderList(searchEl.value || "");
+        setTimeout(function () {
+          searchEl.focus();
+        }, 40);
+      }
+
+      function closeSidecar() {
+        sidecar.classList.remove("is-open");
+        backdrop.classList.remove("is-open");
+        sidecar.setAttribute("aria-hidden", "true");
+        setTimeout(function () {
+          if (!sidecar.classList.contains("is-open")) {
+            sidecar.hidden = true;
+            backdrop.hidden = true;
+          }
+        }, 180);
+      }
+
+      document.getElementById("btn-open-blocks").addEventListener("click", openSidecar);
+      document.getElementById("btn-close-blocks").addEventListener("click", closeSidecar);
+      backdrop.addEventListener("click", closeSidecar);
+      searchEl.addEventListener("input", function () {
+        renderList(searchEl.value);
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && sidecar.classList.contains("is-open")) {
+          closeSidecar();
+        }
+      });
+
       renderProvenance(active);
       renderSlot(active);
-      renderSuggestions();
     })();
   </script>
 </body>
