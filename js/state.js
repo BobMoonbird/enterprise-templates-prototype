@@ -811,7 +811,10 @@
         t.owner === "You" ||
         t.author === "You" ||
         (t.contributors && t.contributors.indexOf("You") >= 0);
-      return mine && (t.status === "pending" || t.status === "draft");
+      return (
+        mine &&
+        (t.status === "pending" || t.status === "draft" || t.status === "changes")
+      );
     });
   }
 

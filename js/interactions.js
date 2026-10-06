@@ -301,9 +301,11 @@
         ? "Golden"
         : status === "pending"
           ? "Pending"
-          : status === "archived"
-            ? "Archived"
-            : "Draft";
+          : status === "changes"
+            ? "Needs changes"
+            : status === "archived"
+              ? "Archived"
+              : "Draft";
     return '<span class="badge badge--' + status + '">' + label + "</span>";
   }
 
@@ -424,6 +426,73 @@
       (node && node.blockReason) || "This tool is not on the company capability allowlist.";
     openModal("modal-node-blocked");
     toast("Blocked: " + ((node && node.name) || "tool") + " is not allowlisted", "danger");
+  }
+
+  /** Admin approval queue: request changes with a message to the builder */
+  function showRequestChangesModal(id) {
+    let backdrop = document.getElementById("modal-request-changes");
+    if (!backdrop) {
+      backdrop = document.createElement("div");
+      backdrop.id = "modal-request-changes";
+      backdrop.className = "modal-backdrop";
+      backdrop.setAttribute("data-block", "Modal");
+      backdrop.setAttribute("aria-hidden", "true");
+      backdrop.innerHTML =
+        '<div class="modal" role="dialog" aria-labelledby="request-changes-title">' +
+        '<div class="modal__header">' +
+        '<h2 class="modal__title" id="request-changes-title">Request changes</h2>' +
+        '<button type="button" class="icon-btn" data-close-modal="modal-request-changes" aria-label="Close">✕</button>' +
+        "</div>" +
+        '<div class="modal__body">' +
+        '<p class="secondary">Tell the builder what to fix before this can be approved.</p>' +
+        '<div class="field">' +
+        '<label for="request-changes-message">Message</label>' +
+        '<textarea id="request-changes-message" rows="4" placeholder="Describe what the builder should fix…"></textarea>' +
+        "</div>" +
+        "</div>" +
+        '<div class="modal__footer">' +
+        '<button type="button" class="btn btn--secondary" data-close-modal="modal-request-changes">Cancel</button>' +
+        '<button type="button" class="btn btn--primary" id="btn-send-request-changes">Send</button>' +
+        "</div>" +
+        "</div>";
+      document.body.appendChild(backdrop);
+      backdrop.addEventListener("click", function (e) {
+        if (e.target === backdrop) closeModal(backdrop);
+      });
+      backdrop.querySelector("#btn-send-request-changes").addEventListener("click", function () {
+        const itemId = backdrop.dataset.itemId;
+        if (!itemId) return;
+        const ta = document.getElementById("request-changes-message");
+        const message = ((ta && ta.value) || "").trim();
+        if (!message) {
+          toast("Add a short note for the builder", "warning");
+          if (ta) ta.focus();
+          return;
+        }
+        const extra = {
+          changesNote: message,
+          updated: new Date().toISOString().slice(0, 10),
+        };
+        if (ProtoState.getProtoVersion() === "v3" && ProtoState.updateBlockStatus) {
+          ProtoState.updateBlockStatus(itemId, "changes", extra);
+        } else {
+          ProtoState.updateTemplateStatus(itemId, "changes", extra);
+        }
+        closeModal(backdrop);
+        const preview = message.length > 72 ? message.slice(0, 72) + "…" : message;
+        toast("Requested changes — “" + preview + "”", "warning");
+        document.dispatchEvent(new CustomEvent("proto:rerender"));
+      });
+    }
+    backdrop.dataset.itemId = id || "";
+    const ta = document.getElementById("request-changes-message");
+    if (ta) {
+      ta.value = "";
+      setTimeout(function () {
+        ta.focus();
+      }, 50);
+    }
+    openModal("modal-request-changes");
   }
 
   /** V3: AI/MCP out-of-policy unit → use company block instead */
@@ -558,7 +627,7 @@
       const changesBtn = e.target.closest("[data-request-changes]");
       if (changesBtn) {
         e.preventDefault();
-        toast("Requested changes — builder notified", "warning");
+        showRequestChangesModal(changesBtn.getAttribute("data-request-changes"));
       }
 
       const toggleLib = e.target.closest("[data-toggle-library]");
@@ -615,6 +684,7 @@
     templateCardHtml: templateCardHtml,
     showNodeBlocked: showNodeBlocked,
     showOutOfPolicyBlock: showOutOfPolicyBlock,
+    showRequestChangesModal: showRequestChangesModal,
     pathPrefix: pathPrefix,
     demoMapHref: demoMapHref,
     screenPath: screenPath,

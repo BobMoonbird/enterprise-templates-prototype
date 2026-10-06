@@ -801,6 +801,7 @@ body:not([data-role="builder"]):not([data-role="admin"]) .role-show-submit { dis
 
 .badge--draft { background: var(--bg-active); color: var(--text-secondary); }
 .badge--pending { background: var(--warning-tint); color: var(--warning); }
+.badge--changes { background: var(--warning-tint); color: var(--warning); }
 .badge--golden { background: var(--success-tint); color: var(--success); }
 .badge--archived { background: var(--bg-active); color: var(--text-muted); }
 .badge--skill {
