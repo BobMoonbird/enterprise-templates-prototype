@@ -1,7 +1,7 @@
 <!--
-PROTOTYPE SCREEN: V3-06 — Building blocks gallery
+PROTOTYPE SCREEN: V3-06 — Building blocks gallery (chunk 3)
 BLOCKS: ProtoChrome, AppShell, GalleryToolbar, TemplateCard, Button, Toast
-JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/agents
+JOURNEY BEAT: Filter by type · Start workflow from a card → compose canvas
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -9,10 +9,10 @@ JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/ag
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-06 · Building blocks gallery</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007000700" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -23,7 +23,6 @@ JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/ag
       </div>
       <nav class="app-shell__nav">
         <a class="nav-item is-active" href="06-blocks-gallery.html?proto=v3"><span class="nav-item__icon">◈</span> Building blocks</a>
-        <a class="nav-item" href="05-create-workflow.html?proto=v3"><span class="nav-item__icon">＋</span> Create</a>
         <a class="nav-item" href="01-enable-library.html?proto=v3"><span class="nav-item__icon">⚙</span> Settings</a>
       </nav>
       <div class="app-shell__footer">Short path · V3</div>
@@ -34,15 +33,15 @@ JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/ag
         <strong>Company building blocks</strong>
         <div class="flex gap-2">
           <a class="btn btn--ghost btn--sm" href="08-ai-assist.html?proto=v3">Try AI</a>
-          <a class="btn btn--secondary btn--sm" href="09-mcp.html?proto=v3">MCP rails</a>
+          <a class="btn btn--secondary btn--sm" href="09-mcp.html?proto=v3">MCP</a>
         </div>
       </header>
       <div class="app-shell__content">
         <div class="page-header">
           <h1>Acme building blocks</h1>
           <p>
-            Tools, skills, and agents certified for the org — not full workflow SoR,
-            and not the public community gallery.
+            Tools, skills, and agents certified for the org. Filter by type, then
+            <strong>Start workflow</strong> from a card — Members enter here, not via blank create.
           </p>
         </div>
 
@@ -72,18 +71,23 @@ JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/ag
         <div class="template-grid" id="template-grid"></div>
 
         <div style="margin-top:24px" class="flex gap-3" id="next-row" hidden>
-          <a class="btn btn--primary" href="07-compose-canvas.html?proto=v3">Next: Compose on canvas →</a>
+          <a class="btn btn--ghost" href="01-enable-library.html?proto=v3&beat=V3-01a#approvals">
+            Next: Admin approvals →
+          </a>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007000700"></script>
-  <script src="../../js/interactions.js?v=20261007000700"></script>
+  <script src="../../js/state.js?v=20261007110500"></script>
+  <script src="../../js/interactions.js?v=20261007110500"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
         ProtoState.setProtoVersion("v3", { reload: false });
+      }
+      if (ProtoState.get().role === "security") {
+        ProtoState.setRole("member");
       }
 
       let filter = "all";
@@ -152,7 +156,7 @@ JOURNEY BEAT: Empty library + public discovery-only · or browse tools/skills/ag
                 card +
                 '<button type="button" class="btn btn--primary btn--sm" style="margin-top:8px" data-use-block="' +
                 b.id +
-                '">Use block</button></div>'
+                '">Start workflow</button></div>'
               );
             }
             return card;

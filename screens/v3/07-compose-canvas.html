@@ -9,10 +9,10 @@ JOURNEY BEAT: + opens right sidecar → suggested company blocks → pin + prove
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-07 · Compose with company blocks</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007000700" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -62,8 +62,11 @@ JOURNEY BEAT: + opens right sidecar → suggested company blocks → pin + prove
           </div>
 
           <div class="result-actions">
-            <a class="btn btn--primary" href="08-ai-assist.html?proto=v3">Same rails via AI →</a>
-            <a class="btn btn--secondary" href="09-mcp.html?proto=v3">Same rails via MCP →</a>
+            <a class="btn btn--primary" href="01-enable-library.html?proto=v3&beat=V3-01r#restrict" id="next-primary">
+              Next: Admin · who can mark →
+            </a>
+            <a class="btn btn--ghost" href="08-ai-assist.html?proto=v3">AI spur (uses blocks)</a>
+            <a class="btn btn--ghost" href="09-mcp.html?proto=v3">MCP spur</a>
             <a class="btn btn--ghost" href="../../index.html?proto=v3">Demo map</a>
           </div>
         </div>
@@ -86,8 +89,8 @@ JOURNEY BEAT: + opens right sidecar → suggested company blocks → pin + prove
     <div class="blocks-sidecar__body" id="blocks-list"></div>
   </aside>
 
-  <script src="../../js/state.js?v=20261007000700"></script>
-  <script src="../../js/interactions.js?v=20261007000700"></script>
+  <script src="../../js/state.js?v=20261007110500"></script>
+  <script src="../../js/interactions.js?v=20261007110500"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -96,6 +99,17 @@ JOURNEY BEAT: + opens right sidecar → suggested company blocks → pin + prove
 
       const params = new URLSearchParams(window.location.search);
       const blockId = params.get("block");
+      const beat = params.get("beat");
+      // Gallery → Start workflow lands here as Member; Blocks canvas beat as Builder
+      if (beat === "V3-07" || (blockId && ProtoState.get().role === "member")) {
+        const next = document.getElementById("next-primary");
+        if (next) {
+          next.href = "01-enable-library.html?proto=v3&beat=V3-01a#approvals";
+          next.textContent = "Next: Admin approvals →";
+        }
+      } else if (beat === "V3-07b") {
+        ProtoState.setRole("builder");
+      }
       let active = ProtoState.getLastInsertedBlock() || (blockId ? ProtoState.getBlock(blockId) : null);
 
       if (!ProtoState.getGoldenBlocks().length) {

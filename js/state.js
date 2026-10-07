@@ -25,8 +25,9 @@
       id: "v3",
       label: "Short · building blocks (V3)",
       shortLabel: "Short · V3",
-      mapLabel: "Short · building blocks",
-      description: "Admin settings (enable + approve) → Builder submit → Member + AI/MCP rails",
+      mapLabel: "Short · shippable chunks",
+      description:
+        "Shippable chunks: Blocks → Admin restrict who can mark → Gallery start → Admin approvals",
     },
   };
 
@@ -489,23 +490,18 @@
   ];
 
   /**
-   * V3 short spine — building blocks + create/copy rails (no Security allowlist).
-   * Files live under screens/v3/.
+   * V3 short spine — shippable chunks (Blocks → Admin restrict → Gallery → Admin approvals).
+   * Files live under screens/v3/. `section` maps to DEMO_MAP_SECTIONS_V3.
+   * AI/MCP are spurs under Blocks (use company blocks without prompting).
    */
   const DEMO_PATH_V3 = [
     {
-      id: "V3-01",
-      file: "v3/01-enable-library.html",
-      title: "Enable library & approve building blocks",
-      beat: "One Admin settings page — opt-in + pending queue",
-      role: "admin",
-    },
-    {
       id: "V3-02",
       file: "v3/02-builder-rails.html",
-      title: "Build a reusable tool / skill / agent under rails",
-      beat: "Soft-block if out of policy",
+      title: "Build with blocks · mark as company level",
+      beat: "Publish ▾ → Save as building block (any builder by default)",
       role: "builder",
+      section: "blocks",
     },
     {
       id: "V3-03",
@@ -513,50 +509,84 @@
       title: "Submit workflow entities for company approval",
       beat: "Multi-select entities · submit ≠ publish",
       role: "builder",
+      section: "blocks",
     },
     {
-      id: "V3-04",
-      file: "v3/01-enable-library.html",
-      title: "Approve pending building blocks",
-      beat: "Same Admin page — Approve → published company blocks",
-      role: "admin",
-    },
-    {
-      id: "V3-05",
-      file: "v3/05-create-workflow.html",
-      title: "Create workflow — blank vs approved blocks",
-      beat: "Member denied blank · request or start from block",
-      role: "member",
-    },
-    {
-      id: "V3-06",
-      file: "v3/06-blocks-gallery.html",
-      title: "Browse company building blocks",
-      beat: "Tools / skills / agents · empty-state beat",
-      role: "member",
-    },
-    {
-      id: "V3-07",
+      id: "V3-07b",
       file: "v3/07-compose-canvas.html",
-      title: "Compose with suggested company blocks",
-      beat: "Provenance on canvas",
-      role: "member",
+      title: "Use company blocks on canvas",
+      beat: "Sidecar suggestions · pin with provenance",
+      role: "builder",
+      section: "blocks",
     },
     {
       id: "V3-08",
       file: "v3/08-ai-assist.html",
-      title: "AI assist — only approved blocks",
-      beat: "Out-of-policy suggestion blocked",
+      title: "AI uses company blocks without prompting",
+      beat: "Auto-grounded in published blocks · no “pick approved?” step",
       role: "member",
+      section: "blocks",
       spur: true,
     },
     {
       id: "V3-09",
       file: "v3/09-mcp.html",
-      title: "MCP prefers company building blocks",
-      beat: "Same rails via MCP",
+      title: "MCP uses company blocks without prompting",
+      beat: "Ambient compose from published blocks",
       role: "member",
+      section: "blocks",
       spur: true,
+    },
+    {
+      id: "V3-01r",
+      file: "v3/01-enable-library.html",
+      title: "Who can mark as company level",
+      beat: "Any builder / Only admin / Custom role",
+      role: "admin",
+      section: "admin-restrict",
+      hash: "restrict",
+    },
+    {
+      id: "V3-02d",
+      file: "v3/02-builder-rails.html",
+      title: "Builder denied when mark is restricted",
+      beat: "Save as building block gated · request access",
+      role: "builder",
+      section: "admin-restrict",
+    },
+    {
+      id: "V3-06",
+      file: "v3/06-blocks-gallery.html",
+      title: "Browse company building blocks",
+      beat: "Filter by type · Start workflow from a card",
+      role: "member",
+      section: "gallery",
+    },
+    {
+      id: "V3-07",
+      file: "v3/07-compose-canvas.html",
+      title: "Start workflow from the library",
+      beat: "Block pre-pinned on compose canvas",
+      role: "member",
+      section: "gallery",
+    },
+    {
+      id: "V3-05",
+      file: "v3/05-create-workflow.html",
+      title: "Blank create (demoted · not primary)",
+      beat: "Optional · Member story starts from gallery",
+      role: "member",
+      section: "gallery",
+      spur: true,
+    },
+    {
+      id: "V3-01a",
+      file: "v3/01-enable-library.html",
+      title: "Approve pending building blocks",
+      beat: "Approve / Request changes / Reject",
+      role: "admin",
+      section: "admin-approvals",
+      hash: "approvals",
     },
   ];
 
@@ -568,11 +598,35 @@
     { role: "member", job: "Copy approved templates · insert skills/blocks (AI + MCP same rails)" },
   ];
 
-  /** V3 map — no Security section */
+  /**
+   * V3 map — shippable chunks (not Security→Admin→Builder→Member swimlanes).
+   * `id` matches DEMO_PATH_V3[].section; `role` is the default actor when opening a card.
+   */
   const DEMO_MAP_SECTIONS_V3 = [
-    { role: "admin", job: "Enable building-blocks library · approve pending blocks (one settings page)" },
-    { role: "builder", job: "Build under rails · mark as company building block (pending)" },
-    { role: "member", job: "Compose from approved blocks · AI + MCP same create/copy rails" },
+    {
+      id: "blocks",
+      label: "Blocks",
+      role: "builder",
+      job: "Mark as company level · use on canvas · AI/MCP use blocks without prompting",
+    },
+    {
+      id: "admin-restrict",
+      label: "Admin · restrict",
+      role: "admin",
+      job: "Who can mark as company level: any builder / only admin / custom role",
+    },
+    {
+      id: "gallery",
+      label: "Gallery",
+      role: "member",
+      job: "In-app library · filter by type · start a new workflow from a block",
+    },
+    {
+      id: "admin-approvals",
+      label: "Admin · approvals",
+      role: "admin",
+      job: "Pending queue · Approve / Request changes / Reject",
+    },
   ];
 
   /**
@@ -761,11 +815,18 @@
     };
   }
 
-  /** V3 starts with library off + empty published catalog (empty-library beat). */
+  /**
+   * V3 starts with library off + empty published catalog (empty-library beat).
+   * markPolicy default: any builder can mark company level (chunk 1 happy path).
+   */
   function defaultStateV3() {
     return {
-      role: "admin",
+      role: "builder",
       libraryEnabled: false,
+      /** Who may mark building blocks as company level */
+      markPolicy: "any_builder", // any_builder | admin_only | custom_role
+      /** When markPolicy === custom_role: whether Automation CoE builders may mark */
+      customMarkIncludesBuilders: false,
       nodes: JSON.parse(JSON.stringify(DEFAULT_NODES)),
       domains: JSON.parse(JSON.stringify(DEFAULT_DOMAINS)),
       templates: [],
@@ -840,6 +901,9 @@
       }
       if (protoVersion === "v3" && !Array.isArray(merged.blocks)) {
         merged.blocks = [];
+      }
+      if (protoVersion === "v3" && !merged.markPolicy) {
+        merged.markPolicy = "any_builder";
       }
       return merged;
     } catch (e) {
@@ -946,6 +1010,55 @@
     setLibraryEnabled(on) {
       state.libraryEnabled = !!on;
       save(state);
+    },
+    /**
+     * V3: who may mark building blocks as company level.
+     * @param {"any_builder"|"admin_only"|"custom_role"} policy
+     */
+    setMarkPolicy(policy) {
+      if (policy !== "any_builder" && policy !== "admin_only" && policy !== "custom_role") {
+        return state.markPolicy;
+      }
+      state.markPolicy = policy;
+      save(state);
+      document.dispatchEvent(
+        new CustomEvent("proto:markpolicychange", { detail: { markPolicy: policy } })
+      );
+      return state.markPolicy;
+    },
+    getMarkPolicy() {
+      return state.markPolicy || "any_builder";
+    },
+    setCustomMarkIncludesBuilders(on) {
+      state.customMarkIncludesBuilders = !!on;
+      save(state);
+      return state.customMarkIncludesBuilders;
+    },
+    /**
+     * Whether the given role (or current role) may mark company-level building blocks.
+     * Gates Publish ▾ → Save as building block (chunk 2 unhappy path).
+     */
+    canMarkCompanyLevel(roleId) {
+      const role = roleId || state.role;
+      if (role === "admin" || role === "security") return true;
+      const policy = state.markPolicy || "any_builder";
+      if (policy === "any_builder") {
+        return role === "builder";
+      }
+      if (policy === "admin_only") {
+        return false;
+      }
+      // custom_role: Admin always; Builders only if CoE grant is on
+      if (policy === "custom_role") {
+        return role === "builder" && !!state.customMarkIncludesBuilders;
+      }
+      return false;
+    },
+    markPolicyLabel(policy) {
+      const p = policy || state.markPolicy || "any_builder";
+      if (p === "admin_only") return "Only admin";
+      if (p === "custom_role") return "Custom role";
+      return "Any builder";
     },
     /** V3: seed demo building blocks when jumping into late screens with empty catalog */
     ensureDemoBlocks() {

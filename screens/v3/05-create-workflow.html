@@ -1,18 +1,18 @@
 <!--
-PROTOTYPE SCREEN: V3-05 — Create workflow (blank vs approved blocks)
+PROTOTYPE SCREEN: V3-05 — Blank create (demoted · not primary Member path)
 BLOCKS: ProtoChrome, AppShell, CreateEmptyState, Modal, Button
-JOURNEY BEAT: Member denied blank — modal: request access vs start from approved block
+JOURNEY BEAT: Spur only — primary Member story is Gallery → Start workflow
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>V3-05 · Create from approved blocks</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007000700" />
+  <title>V3-05 · Create (demoted)</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -25,32 +25,37 @@ JOURNEY BEAT: Member denied blank — modal: request access vs start from approv
         <a class="nav-item" href="06-blocks-gallery.html?proto=v3"><span class="nav-item__icon">◈</span> Building blocks</a>
         <a class="nav-item is-active" href="05-create-workflow.html?proto=v3"><span class="nav-item__icon">＋</span> Create</a>
       </nav>
-      <div class="app-shell__footer">Short path · V3</div>
+      <div class="app-shell__footer">Short path · V3 · spur</div>
     </aside>
 
     <div class="app-shell__main">
       <header class="app-shell__topbar">
         <strong>Create workflow</strong>
-        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Member</span></span>
+        <span class="secondary" style="font-size:12px">Acting as <span data-role-label>Member</span> · demoted path</span>
       </header>
       <div class="app-shell__content">
+        <div class="notice" style="margin-bottom:20px;max-width:640px">
+          <strong>Not the primary demo path.</strong>
+          Members start from the <a href="06-blocks-gallery.html?proto=v3">building-blocks gallery</a>
+          via <strong>Start workflow</strong>. Blank create stays as an optional rail.
+        </div>
         <div data-block="CreateEmptyState">
           <h1 class="create-empty__title">How do you want to start?</h1>
           <div class="create-options" id="create-options">
+            <a class="create-option is-clickable lib-create-primary" href="06-blocks-gallery.html?proto=v3" id="opt-library">
+              <div class="create-option__icon">◈</div>
+              <h3>From company building blocks</h3>
+              <p>Primary path — browse tools / skills / agents and start a workflow.</p>
+            </a>
             <button type="button" class="create-option is-clickable" id="opt-blank" style="text-align:left;width:100%;font:inherit;color:inherit;cursor:pointer">
               <div class="create-option__icon">◻</div>
               <h3>Blank workflow</h3>
-              <p>Start from an empty canvas. Members: blocked — request access or use a block.</p>
+              <p>Secondary — Members: blocked; request access or use the gallery.</p>
             </button>
-            <a class="create-option is-clickable lib-create-primary" href="06-blocks-gallery.html?proto=v3" id="opt-library">
-              <div class="create-option__icon">◈</div>
-              <h3>From approved building blocks</h3>
-              <p>Browse tools / skills / agents certified for Acme.</p>
-            </a>
             <a class="create-option is-clickable" href="08-ai-assist.html?proto=v3">
               <div class="create-option__icon">✦</div>
               <h3>Create with AI</h3>
-              <p>AI offers only approved company blocks, then asks you to confirm.</p>
+              <p>AI already uses company blocks without prompting.</p>
             </a>
           </div>
         </div>
@@ -66,22 +71,19 @@ JOURNEY BEAT: Member denied blank — modal: request access vs start from approv
       </div>
       <div class="modal__body">
         <p class="secondary">
-          Your role can copy and compose from approved company building blocks only.
-          Choose how to continue:
+          Your role starts from approved company building blocks.
+          Prefer the gallery <strong>Start workflow</strong> path.
         </p>
-        <div class="notice" style="margin-top:12px">
-          Same create/copy rails apply if you try blank create via AI or MCP.
-        </div>
       </div>
       <div class="modal__footer" style="flex-wrap:wrap;gap:8px">
         <button type="button" class="btn btn--secondary" id="btn-request-blank">Request blank access</button>
-        <a class="btn btn--primary" href="06-blocks-gallery.html?proto=v3">Start from approved block</a>
+        <a class="btn btn--primary" href="06-blocks-gallery.html?proto=v3">Start from gallery</a>
       </div>
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007000700"></script>
-  <script src="../../js/interactions.js?v=20261007000700"></script>
+  <script src="../../js/state.js?v=20261007110500"></script>
+  <script src="../../js/interactions.js?v=20261007110500"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {

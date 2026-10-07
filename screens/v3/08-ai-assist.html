@@ -1,18 +1,18 @@
 <!--
-PROTOTYPE SCREEN: V3-08 — AI assist compose (approved blocks only)
+PROTOTYPE SCREEN: V3-08 — AI uses company blocks without prompting (Blocks spur)
 BLOCKS: ProtoChrome, AppShell, AiAssistPanel, ProvenanceChip, Modal, Button, Toast
-JOURNEY BEAT: Out-of-policy suggestion blocked → use company block
+JOURNEY BEAT: Ambient grounding in published blocks · thin secondary out-of-policy refuse
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>V3-08 · AI assist · company blocks</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007000700" />
+  <title>V3-08 · AI · company blocks</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -31,22 +31,24 @@ JOURNEY BEAT: Out-of-policy suggestion blocked → use company block
     <div class="app-shell__main">
       <header class="app-shell__topbar">
         <strong>Create with AI</strong>
+        <span class="provenance-chip" data-block="ProvenanceChip">Using company blocks</span>
       </header>
       <div class="app-shell__content">
         <div data-block="AiAssistPanel">
           <div class="ai-chat">
             <div class="ai-chat__messages" id="ai-messages">
               <div class="ai-msg ai-msg--bot">
-                I only compose from <strong>Acme company building blocks</strong> (tools / skills / agents).
-                What do you want to automate?
+                I’ll compose from <strong>Acme company building blocks</strong> automatically —
+                no need to ask me to “use approved” units.
               </div>
               <div class="ai-msg ai-msg--user">
                 Resolve a user from Okta then post a Slack update
               </div>
               <div class="ai-msg ai-msg--bot" id="ai-match-msg">
-                Best match: <strong id="match-inline">Resolve user from Okta</strong> (company skill)
-                + <strong>Post structured Slack update</strong> (company tool).
-                <div class="ai-msg__trust">✓ Trust: grounded in approved building blocks — not unconstrained generation.</div>
+                Composing with pinned company blocks (no extra prompt):
+                <strong id="match-inline">Resolve user from Okta</strong> (skill)
+                + <strong>Post structured Slack update</strong> (tool).
+                <div class="ai-msg__trust">✓ Already grounded in published company blocks.</div>
               </div>
             </div>
             <div class="ai-chat__composer">
@@ -54,12 +56,13 @@ JOURNEY BEAT: Out-of-policy suggestion blocked → use company block
               <button type="button" class="btn btn--primary" id="ai-send" data-block="Button">Send</button>
             </div>
             <p class="muted" style="margin-top:12px;font-size:12px">
-              Unhappy path: try sending “add SSH bootstrap” — AI refuses non-approved units.
+              Primary story: AI already uses company blocks. Optional: try “add SSH bootstrap”
+              for a thin out-of-policy refuse.
             </p>
           </div>
 
           <aside class="ai-match" id="ai-match-panel">
-            <div class="ai-match__label">Approved building block match</div>
+            <div class="ai-match__label">Pinned company blocks (auto)</div>
             <div class="ai-match__card" data-block="TemplateCard">
               <span class="badge badge--golden">Published</span>
               <h3 id="match-name">Resolve user from Okta</h3>
@@ -67,14 +70,14 @@ JOURNEY BEAT: Out-of-policy suggestion blocked → use company block
               <div class="template-card__ownership" id="match-owner" style="margin-top:8px"></div>
             </div>
             <div class="ai-match__trust">
-              AI will <strong>compose from approved company blocks</strong>, not invent unreviewed units.
-              Same rails as gallery and MCP.
+              AI <strong>uses company blocks without being prompted</strong> — same objects as
+              gallery and MCP. No “please pick an approved block” step.
             </div>
             <button type="button" class="btn btn--primary btn--lg" id="btn-confirm-ai" data-block="Button">
-              Confirm &amp; create
+              Create workflow
             </button>
-            <button type="button" class="btn btn--ghost" id="btn-try-bad" data-out-of-policy="Suggested unit “SSH bootstrap script” is not an approved company building block.">
-              Simulate out-of-policy suggestion
+            <button type="button" class="btn btn--ghost" id="btn-try-bad" data-out-of-policy="Suggested unit “SSH bootstrap script” is not a company building block — AI stays on published blocks.">
+              Secondary: out-of-policy refuse
             </button>
           </aside>
         </div>
@@ -85,12 +88,15 @@ JOURNEY BEAT: Out-of-policy suggestion blocked → use company block
   <div class="modal-backdrop" id="modal-ai-confirm" data-block="Modal" aria-hidden="true">
     <div class="modal" role="dialog">
       <div class="modal__header">
-        <h2 class="modal__title">Confirm AI compose</h2>
+        <h2 class="modal__title">Create from company blocks</h2>
         <button type="button" class="icon-btn" data-close-modal="modal-ai-confirm">✕</button>
       </div>
       <div class="modal__body">
-        <p>Create a workflow from company block <strong id="confirm-name">Resolve user from Okta</strong>?</p>
-        <div class="notice">Provenance: <em>Created with AI from company building block</em>.</div>
+        <p>
+          Create a workflow already wired to
+          <strong id="confirm-name">Resolve user from Okta</strong> and Slack post?
+        </p>
+        <div class="notice">Provenance: <em>Created with AI · company building blocks (auto-grounded)</em>.</div>
       </div>
       <div class="modal__footer">
         <button type="button" class="btn btn--secondary" data-close-modal="modal-ai-confirm">Cancel</button>
@@ -99,8 +105,8 @@ JOURNEY BEAT: Out-of-policy suggestion blocked → use company block
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007000700"></script>
-  <script src="../../js/interactions.js?v=20261007000700"></script>
+  <script src="../../js/state.js?v=20261007110500"></script>
+  <script src="../../js/interactions.js?v=20261007110500"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -135,7 +141,7 @@ JOURNEY BEAT: Out-of-policy suggestion blocked → use company block
           owner: match ? match.owner : null,
           version: match ? match.version : null,
         });
-        ProtoUI.toast("Workflow composed from approved company blocks via AI", "success");
+        ProtoUI.toast("Workflow created — AI used company blocks without prompting", "success");
         setTimeout(function () {
           window.location.href = "07-compose-canvas.html?proto=v3";
         }, 400);
@@ -156,18 +162,20 @@ JOURNEY BEAT: Out-of-policy suggestion blocked → use company block
           lower.indexOf("unapproved") >= 0
         ) {
           ProtoUI.showOutOfPolicyBlock({
+            intro: "AI stays on published company blocks — no prompt to “use approved.”",
             reason:
-              "AI will not add “" +
+              "“" +
               v.slice(0, 48) +
-              "” — it is not an approved company building block.",
+              "” is not in the company library. Continuing with pinned company blocks.",
           });
           document.getElementById("ai-input").value = "";
           return;
         }
         const bot = document.createElement("div");
         bot.className = "ai-msg ai-msg--bot";
-        bot.textContent =
-          "I’ll stick to approved company blocks. Confirm the match on the right, or browse the gallery.";
+        bot.innerHTML =
+          "Updated the compose plan using published company blocks automatically. " +
+          "Confirm on the right when ready — no extra “pick approved” step.";
         box.appendChild(bot);
         document.getElementById("ai-input").value = "";
       });

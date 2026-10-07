@@ -1,7 +1,7 @@
 <!--
-PROTOTYPE SCREEN: V3-01 — Admin building-blocks settings (enable + approvals)
-BLOCKS: ProtoChrome, VersionSwitcher, RoleSwitcher, AppShell, SettingsLayout, LibraryEnableToggle, ApprovalQueue, Button, Toast
-JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revisited as V3-04)
+PROTOTYPE SCREEN: V3 Admin settings — enable + who can mark + approvals
+BLOCKS: ProtoChrome, VersionSwitcher, RoleSwitcher, AppShell, SettingsLayout, LibraryEnableToggle, MarkPolicyControl, ApprovalQueue, Button, Toast
+JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending queue · thin library opt-in
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -9,10 +9,10 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3 · Building blocks settings</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007000700" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -44,8 +44,8 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
               <h2>Company building blocks</h2>
               <p>
                 Org-owned <strong>tools</strong>, <strong>skills</strong>, and <strong>agents</strong> —
-                smaller units than full golden workflows. Enable the library, then approve
-                pending blocks before Members can use them.
+                smaller units than full golden workflows. Restrict who can mark company level,
+                enable the library, then approve pending blocks.
               </p>
             </div>
 
@@ -54,7 +54,7 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
                 <div class="toggle-row__text">
                   <h3>Enable company building blocks</h3>
                   <p>
-                    When on, Members can use company-level tools, skills and workflows
+                    When on, Members can browse and start workflows from published company blocks
                   </p>
                 </div>
                 <button
@@ -65,6 +65,46 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
                   role="switch"
                   aria-label="Show company building-blocks library"
                 ></button>
+              </div>
+            </div>
+
+            <div data-block="MarkPolicyControl" id="restrict">
+              <h3>Who can mark building blocks as company level</h3>
+              <p>
+                Controls who may use <strong>Save as building block</strong>. Default is any builder
+                (chunk 1). Flip to Only admin to demo the restricted Builder path.
+              </p>
+              <div class="mark-policy-options" role="radiogroup" aria-label="Who can mark as company level">
+                <button type="button" class="mark-policy-option is-clickable" data-mark-policy="any_builder">
+                  <span class="mark-policy-option__radio" aria-hidden="true"></span>
+                  <span>
+                    <div class="mark-policy-option__title">Any builder</div>
+                    <div class="mark-policy-option__desc">Builders can submit their blocks for Admin approval</div>
+                  </span>
+                </button>
+                <button type="button" class="mark-policy-option is-clickable" data-mark-policy="admin_only">
+                  <span class="mark-policy-option__radio" aria-hidden="true"></span>
+                  <span>
+                    <div class="mark-policy-option__title">Only admin</div>
+                    <div class="mark-policy-option__desc">Builders see Save as building block denied · can request access</div>
+                  </span>
+                </button>
+                <button type="button" class="mark-policy-option is-clickable" data-mark-policy="custom_role">
+                  <span class="mark-policy-option__radio" aria-hidden="true"></span>
+                  <span>
+                    <div class="mark-policy-option__title">Custom role</div>
+                    <div class="mark-policy-option__desc">Assign a custom role (e.g. Automation CoE) who may mark</div>
+                  </span>
+                </button>
+              </div>
+              <div class="mark-policy-custom" id="custom-mark-extra" hidden>
+                <label>
+                  <input type="checkbox" id="custom-mark-builders" />
+                  <span>
+                    Grant <strong>Automation CoE</strong> builders permission to mark
+                    (prototype switch — off by default so Builder stays denied until you grant)
+                  </span>
+                </label>
               </div>
             </div>
 
@@ -86,14 +126,16 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
               <div class="queue-list" id="queue-list"></div>
             </div>
 
-            <div style="margin-top:24px" class="flex gap-3">
-              <a class="btn btn--primary" href="02-builder-rails.html?proto=v3" id="next-builder">
-                Next: Build under rails →
+            <div style="margin-top:24px" class="flex gap-3" id="footer-actions">
+              <a class="btn btn--primary" href="02-builder-rails.html?proto=v3&beat=V3-02d" id="next-builder-denied">
+                Next: Builder with restrict on →
               </a>
-              <a class="btn btn--ghost" href="05-create-workflow.html?proto=v3&role=member" id="next-member">
-                Next: Create as Member →
+              <a class="btn btn--ghost" href="06-blocks-gallery.html?proto=v3&role=member" id="next-gallery">
+                Next: Gallery →
               </a>
-              <a class="btn btn--ghost" href="06-blocks-gallery.html?proto=v3&role=member">Open gallery</a>
+              <a class="btn btn--ghost" href="02-builder-rails.html?proto=v3" id="next-builder">
+                Open Builder canvas
+              </a>
             </div>
           </section>
         </div>
@@ -101,8 +143,8 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007000700"></script>
-  <script src="../../js/interactions.js?v=20261007000700"></script>
+  <script src="../../js/state.js?v=20261007110500"></script>
+  <script src="../../js/interactions.js?v=20261007110500"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -115,13 +157,22 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
 
       const params = new URLSearchParams(window.location.search || "");
       const beat = params.get("beat");
-      if (beat === "V3-04") {
-        const el = document.getElementById("approvals");
+      const hash = (window.location.hash || "").replace(/^#/, "");
+
+      function scrollToId(id) {
+        const el = document.getElementById(id);
         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-        document.getElementById("next-builder").classList.remove("btn--primary");
-        document.getElementById("next-builder").classList.add("btn--ghost");
-        document.getElementById("next-member").classList.remove("btn--ghost");
-        document.getElementById("next-member").classList.add("btn--primary");
+      }
+
+      if (beat === "V3-01a" || hash === "approvals") {
+        scrollToId("approvals");
+        document.getElementById("next-builder-denied").classList.remove("btn--primary");
+        document.getElementById("next-builder-denied").classList.add("btn--ghost");
+        document.getElementById("next-gallery").classList.remove("btn--ghost");
+        document.getElementById("next-gallery").classList.add("btn--primary");
+        document.getElementById("next-gallery").textContent = "Done · open gallery →";
+      } else if (beat === "V3-01r" || hash === "restrict") {
+        scrollToId("restrict");
       }
 
       let tab = "pending";
@@ -131,6 +182,20 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
         const t = document.getElementById("library-toggle");
         t.classList.toggle("is-on", on);
         t.setAttribute("aria-pressed", on ? "true" : "false");
+      }
+
+      function syncMarkPolicy() {
+        const policy = ProtoState.getMarkPolicy();
+        document.querySelectorAll("[data-mark-policy]").forEach(function (btn) {
+          const selected = btn.getAttribute("data-mark-policy") === policy;
+          btn.classList.toggle("is-selected", selected);
+          btn.setAttribute("aria-checked", selected ? "true" : "false");
+          btn.setAttribute("role", "radio");
+        });
+        const extra = document.getElementById("custom-mark-extra");
+        extra.hidden = policy !== "custom_role";
+        document.getElementById("custom-mark-builders").checked = !!ProtoState.get()
+          .customMarkIncludesBuilders;
       }
 
       function ownershipLine(t) {
@@ -172,7 +237,7 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
           const pending = ProtoState.getPendingBlocks();
           if (!pending.length) {
             list.innerHTML =
-              '<p class="secondary">Queue clear — approve from a Builder submit, or continue to Member create.</p>';
+              '<p class="secondary">Queue clear — approve from a Builder submit, or continue to Gallery.</p>';
             return;
           }
           list.innerHTML = pending
@@ -247,8 +312,31 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
 
       function render() {
         syncToggle();
+        syncMarkPolicy();
         renderQueue();
       }
+
+      document.querySelectorAll("[data-mark-policy]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const policy = btn.getAttribute("data-mark-policy");
+          ProtoState.setMarkPolicy(policy);
+          ProtoUI.toast(
+            "Who can mark: " + ProtoState.markPolicyLabel(policy),
+            "success"
+          );
+          syncMarkPolicy();
+        });
+      });
+
+      document.getElementById("custom-mark-builders").addEventListener("change", function (e) {
+        ProtoState.setCustomMarkIncludesBuilders(e.target.checked);
+        ProtoUI.toast(
+          e.target.checked
+            ? "Automation CoE builders may mark"
+            : "Only Admin may mark under custom role",
+          "success"
+        );
+      });
 
       document.querySelectorAll("[data-tab]").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -260,17 +348,24 @@ JOURNEY BEAT: Admin opt-in + pending → approve on one settings page (also revi
         });
       });
 
-      document.getElementById("next-builder").addEventListener("click", function () {
+      document.getElementById("next-builder-denied").addEventListener("click", function () {
+        if (ProtoState.getMarkPolicy() === "any_builder") {
+          ProtoState.setMarkPolicy("admin_only");
+        }
         if (!ProtoState.get().libraryEnabled) {
           ProtoState.setLibraryEnabled(true);
         }
         ProtoState.setRole("builder");
       });
-      document.getElementById("next-member").addEventListener("click", function () {
+      document.getElementById("next-builder").addEventListener("click", function () {
+        ProtoState.setRole("builder");
+      });
+      document.getElementById("next-gallery").addEventListener("click", function () {
         ProtoState.setRole("member");
       });
 
       document.addEventListener("proto:rerender", render);
+      document.addEventListener("proto:markpolicychange", syncMarkPolicy);
       render();
     })();
   </script>

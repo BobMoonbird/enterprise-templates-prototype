@@ -1,7 +1,7 @@
 <!--
-PROTOTYPE SCREEN: V3-02 — Build reusable tool/skill/agent under rails
+PROTOTYPE SCREEN: V3-02 — Build + mark as company block (gated by markPolicy)
 BLOCKS: ProtoChrome, WorkflowEditorChrome, NodePalette, Button, Menu, Modal, Toast
-JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
+JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -9,10 +9,10 @@ JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-02 · Build under rails</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007000700" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
 </head>
 <body>
   <div data-block="WorkflowEditorChrome">
@@ -36,7 +36,7 @@ JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
             <button type="button" class="menu-item is-accent" id="menu-save-block">
               <div>
                 <div class="menu-item__title">Save as building block</div>
-                <div class="menu-item__desc">Submit for Admin approval — not live until approved</div>
+                <div class="menu-item__desc" id="menu-save-desc">Submit for Admin approval — not live until approved</div>
               </div>
             </button>
           </div>
@@ -44,6 +44,13 @@ JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
         <button type="button" class="btn btn--secondary btn--sm">Execute</button>
       </div>
     </header>
+    <div id="mark-denied-banner" class="mark-denied-banner" hidden>
+      You can’t mark company-level blocks — policy is
+      <strong id="mark-denied-policy">Only admin</strong>.
+      <button type="button" class="btn btn--secondary btn--sm" id="btn-request-mark" style="margin-left:8px">
+        Request access
+      </button>
+    </div>
     <div class="editor-body">
       <aside data-block="NodePalette">
         <div class="palette-header">
@@ -68,14 +75,34 @@ JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
           <div class="canvas-node__name">Code</div>
         </div>
         <p class="secondary" style="position:absolute;left:80px;top:240px;max-width:360px;font-size:12px">
-          Tip: click a <strong>Blocked</strong> palette item for the soft-block / request-access beat.
+          Tip: open <strong>Publish ▾</strong> → <strong>Save as building block</strong> to mark company level.
+          Soft-block palette items still demo capability rails.
         </p>
       </div>
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007000700"></script>
-  <script src="../../js/interactions.js?v=20261007000700"></script>
+  <div class="modal-backdrop" id="modal-mark-denied" data-block="Modal" aria-hidden="true">
+    <div class="modal" role="dialog">
+      <div class="modal__header">
+        <h2 class="modal__title">Can’t mark as company level</h2>
+        <button type="button" class="icon-btn" data-close-modal="modal-mark-denied">✕</button>
+      </div>
+      <div class="modal__body">
+        <p class="secondary">
+          Admin set <strong id="modal-mark-policy">Only admin</strong> as who can mark building blocks
+          as company level. Request access, or ask an Admin to mark this for you.
+        </p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" data-close-modal="modal-mark-denied">Dismiss</button>
+        <button type="button" class="btn btn--primary" id="btn-modal-request-mark">Request access</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/state.js?v=20261007110500"></script>
+  <script src="../../js/interactions.js?v=20261007110500"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -83,7 +110,40 @@ JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
       }
       if (ProtoState.get().role !== "builder" && ProtoState.get().role !== "admin") {
         ProtoState.setRole("builder");
-        ProtoUI.applyRoleChrome();
+      }
+      ProtoUI.applyRoleChrome();
+
+      const params = new URLSearchParams(window.location.search || "");
+      const beat = params.get("beat");
+      // Chunk 2 unhappy path: ensure restrict is on when arriving as V3-02d
+      if (beat === "V3-02d" && ProtoState.getMarkPolicy() === "any_builder") {
+        ProtoState.setMarkPolicy("admin_only");
+      }
+
+      function canMark() {
+        return ProtoState.canMarkCompanyLevel();
+      }
+
+      function syncMarkGate() {
+        const allowed = canMark();
+        const menuItem = document.getElementById("menu-save-block");
+        const banner = document.getElementById("mark-denied-banner");
+        const desc = document.getElementById("menu-save-desc");
+        const policyLabel = ProtoState.markPolicyLabel();
+        document.getElementById("mark-denied-policy").textContent = policyLabel;
+        document.getElementById("modal-mark-policy").textContent = policyLabel;
+        if (allowed) {
+          menuItem.classList.remove("is-denied");
+          menuItem.classList.add("is-accent");
+          desc.textContent = "Submit for Admin approval — not live until approved";
+          banner.hidden = true;
+        } else {
+          menuItem.classList.add("is-denied");
+          menuItem.classList.remove("is-accent");
+          desc.textContent =
+            "Restricted — " + policyLabel + ". Request access or ask Admin.";
+          banner.hidden = false;
+        }
       }
 
       function renderPalette() {
@@ -147,11 +207,32 @@ JOURNEY BEAT: Soft-block out-of-policy unit · mark as company block entry
           "success"
         );
       });
-      document.getElementById("menu-save-block").addEventListener("click", function () {
+      document.getElementById("menu-save-block").addEventListener("click", function (e) {
+        e.stopPropagation();
+        menu.classList.remove("is-open");
+        if (!canMark()) {
+          ProtoUI.openModal("modal-mark-denied");
+          return;
+        }
         window.location.href = "03-mark-company-block.html?proto=v3";
       });
 
+      function requestMarkAccess() {
+        ProtoUI.closeModal("modal-mark-denied");
+        ProtoUI.toast(
+          "Access requested — Admin notified (#automation-coe) to grant mark permission",
+          "success"
+        );
+      }
+      document.getElementById("btn-request-mark").addEventListener("click", requestMarkAccess);
+      document.getElementById("btn-modal-request-mark").addEventListener("click", requestMarkAccess);
+
+      document.addEventListener("proto:rerender", syncMarkGate);
+      document.addEventListener("proto:rolechange", syncMarkGate);
+      document.addEventListener("proto:markpolicychange", syncMarkGate);
+
       renderPalette();
+      syncMarkGate();
     })();
   </script>
 </body>

@@ -91,7 +91,7 @@
     return matches[0];
   }
 
-  /** Build screen href; pass beat= when the same file appears twice in DEMO_PATH */
+  /** Build screen href; pass beat= when the same file appears twice in DEMO_PATH; honor entry.hash */
   function screenHref(entry, version) {
     const prefix = pathPrefix();
     const base = (entry.file || "").split("?")[0];
@@ -102,6 +102,9 @@
     });
     if (dupes.length > 1 && entry.id) {
       href += "&beat=" + encodeURIComponent(entry.id);
+    }
+    if (entry.hash) {
+      href += "#" + String(entry.hash).replace(/^#/, "");
     }
     return href;
   }
@@ -535,13 +538,13 @@
     }
     document.getElementById("oop-intro").textContent =
       opts.intro ||
-      "Create/copy rails apply on UI, AI, and MCP — only Admin-approved company blocks can be used.";
+      "AI and MCP already use published company blocks without prompting — non-library units are skipped.";
     document.getElementById("oop-reason").textContent =
       opts.reason || "Suggested unit is not in the company building-blocks library.";
     backdrop.dataset.altHref =
       opts.altHref || pathPrefix() + "screens/v3/06-blocks-gallery.html?proto=v3";
     openModal("modal-out-of-policy");
-    toast("Blocked: use an approved company building block", "danger");
+    toast("Staying on company building blocks", "warning");
   }
 
   /* ── Global click delegation ── */
@@ -582,13 +585,16 @@
         const b = ProtoState.insertBlockIntoWorkflow(id);
         toast(
           b
-            ? "Added company " + (b.kind || "block") + " · pending publish already approved"
-            : "Building block added",
+            ? "Started workflow from company " + (b.kind || "block") + " · “" + b.name + "”"
+            : "Workflow started from building block",
           "success"
         );
         const prefix = pathPrefix();
         setTimeout(function () {
-          window.location.href = prefix + "screens/v3/07-compose-canvas.html?proto=v3";
+          window.location.href =
+            prefix +
+            "screens/v3/07-compose-canvas.html?proto=v3&block=" +
+            encodeURIComponent(id || "");
         }, 400);
       }
 

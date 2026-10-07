@@ -2,7 +2,7 @@
 
 Multi-page HTML + shared CSS/JS. Each major region uses `data-block="BlockName"` so you can find and relocate pieces without hunting screenshots.
 
-**Prototype versions:** `v2` (full Security→Member) and `v3` (short building-blocks spine). Active version from `?proto=v2|v3` or `localStorage` key `ent-templates-proto-version`. ProtoChrome Back/Next and the demo map read `ProtoState.DEMO_PATH` (getter → `DEMO_PATH_V2` or `DEMO_PATH_V3`).
+**Prototype versions:** `v2` (full Security→Member) and `v3` (shippable chunks: Blocks → Admin restrict → Gallery → Admin approvals). Active version from `?proto=v2|v3` or `localStorage` key `ent-templates-proto-version`. ProtoChrome Back/Next and the demo map read `ProtoState.DEMO_PATH` (getter → `DEMO_PATH_V2` or `DEMO_PATH_V3`). V3 map sections use `DEMO_MAP_SECTIONS_V3` + path `section` ids (not role swimlanes).
 
 ## Folder map
 
@@ -160,11 +160,21 @@ Index uses `css/` and `js/` without `../`.
 
 | | |
 |--|--|
-| **Purpose** | Experimental hide/show for private library (default **on** — Miro: hard enable setting is questionable) |
+| **Purpose** | Experimental hide/show for private library (default **on** V2; **off** V3 until enable beat) |
 | **CSS** | `[data-block="LibraryEnableToggle"]`, `.toggle`, `.toggle-row`, `.lib-callout`, `.lib-admin-keys` |
-| **JS** | `[data-toggle-library]` → `ProtoState.setLibraryEnabled`; default `libraryEnabled: true` |
-| **Screens** | 01b; read on 06 |
-| **Move/change** | 01b also surfaces admin key views (existing templates + pending approvals) |
+| **JS** | `[data-toggle-library]` → `ProtoState.setLibraryEnabled`; default `libraryEnabled: true` (V2) / `false` (V3) |
+| **Screens** | 01b; V3 `01-enable-library`; read on gallery |
+| **Move/change** | V3 keeps this as a thin opt-in, not a separate shippable chunk |
+
+### MarkPolicyControl
+
+| | |
+|--|--|
+| **Purpose** | Admin setting: who may mark building blocks as company level (`any_builder` / `admin_only` / `custom_role`) |
+| **CSS** | `[data-block="MarkPolicyControl"]`, `.mark-policy-option*`, `.mark-denied-banner` |
+| **JS** | `ProtoState.setMarkPolicy`, `canMarkCompanyLevel`, `setCustomMarkIncludesBuilders`; gates V3-02 Save as building block |
+| **Screens** | V3 `01-enable-library` (`#restrict`) |
+| **Move/change** | Default `any_builder`. Chunk 2 demo flips to `admin_only` then opens Builder deny beat. |
 
 ### WorkflowEditorChrome
 
@@ -287,15 +297,24 @@ Index uses `css/` and `js/` without `../`.
 | 09 | AppShell, McpChatVignette, ProvenanceChip, Button, Toast |
 | 10 | AppShell, LifecycleBanner, SaveSkillForm, Button, Toast |
 | 10b | AppShell, GalleryToolbar, SkillCatalog, SkillCard, ProvenanceChip, Button, Toast |
-| v3/01 | AppShell, SettingsLayout, LibraryEnableToggle, Button, Toast |
-| v3/02 | WorkflowEditorChrome, PolicyRail, NodePalette, LifecycleBanner, Menu, Modal, Toast |
-| v3/03 | AppShell, LifecycleBanner, Button, Toast |
-| v3/04 | AppShell, SettingsLayout, ApprovalQueue, Button, Toast |
-| v3/05 | AppShell, CreateEmptyState, Modal, Button |
-| v3/06 | AppShell, GalleryToolbar, TemplateCard, Button, Toast |
-| v3/07 | AppShell, WorkflowEditorChrome, ProvenanceChip, Button |
+| v3/01 | AppShell, SettingsLayout, LibraryEnableToggle, MarkPolicyControl, ApprovalQueue, Button, Toast |
+| v3/02 | WorkflowEditorChrome, NodePalette, Menu, Modal, Toast (markPolicy gate) |
+| v3/03 | AppShell, LifecycleBanner, SubmitEntityForm, Button, Toast |
+| v3/04 | Redirect → v3/01 approvals |
+| v3/05 | AppShell, CreateEmptyState, Modal, Button (demoted spur) |
+| v3/06 | AppShell, GalleryToolbar, TemplateCard, Button, Toast (Start workflow) |
+| v3/07 | AppShell, WorkflowEditorChrome, BuildingBlocksSidecar, ProvenanceChip, Button |
 | v3/08 | AppShell, AiAssistPanel, ProvenanceChip, Modal, Button, Toast |
 | v3/09 | AppShell, McpChatVignette, ProvenanceChip, Button, Toast |
+
+### V3 path → shippable chunks
+
+| Chunk | DEMO_PATH ids | Files |
+|-------|---------------|-------|
+| Blocks | V3-02, V3-03, V3-07b (+ V3-08/09 spurs) | 02, 03, 07, 08, 09 |
+| Admin · restrict | V3-01r, V3-02d | 01 `#restrict`, 02 deny |
+| Gallery | V3-06, V3-07 (+ V3-05 spur) | 06, 07, 05 |
+| Admin · approvals | V3-01a | 01 `#approvals` |
 
 *(ProtoChrome + VersionSwitcher on all; RoleSwitcher on product screens via injection.)*
 
@@ -307,6 +326,9 @@ ProtoState.setProtoVersion('v3', { reload: false })
 ProtoState.DEMO_PATH // getter → DEMO_PATH_V2 or DEMO_PATH_V3
 ProtoState.setRole('member')
 ProtoState.setLibraryEnabled(true) // V2 default true; V3 default false
+ProtoState.setMarkPolicy('any_builder'|'admin_only'|'custom_role') // V3 chunk 2
+ProtoState.canMarkCompanyLevel(roleId?) // gates Save as building block
+ProtoState.setCustomMarkIncludesBuilders(true) // when markPolicy === custom_role
 ProtoState.templatesForRole('builder') // V2 role-filtered library
 ProtoState.beginBlockReview('capability', 'cap-slack') // V2 → 00b
 ProtoState.getBlockImpact()
@@ -315,7 +337,8 @@ ProtoState.submitDraftAsPending({ name, note, owner, contributors, targetGroups 
 ProtoState.updateTemplateStatus(id, 'golden')
 ProtoState.getBlocks('tool'|'skill'|'agent'|null) // V3
 ProtoState.submitCompanyBlock({ kind, name, description, owner, note })
-ProtoState.updateBlockStatus(id, 'golden')
+ProtoState.submitCompanyBlocks(entities, shared) // V3 multi-select
+ProtoState.updateBlockStatus(id, 'golden'|'changes'|'draft', extra?)
 ProtoState.ensureDemoBlocks() // V3 seed when jumping to late screens
 ProtoState.insertBlockIntoWorkflow(id)
 ProtoState.setProvenance({ type: 'library'|'ai'|'mcp'|'skill'|'block'|…, … })

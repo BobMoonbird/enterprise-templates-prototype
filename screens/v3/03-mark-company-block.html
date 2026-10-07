@@ -9,10 +9,10 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-03 · Submit for company approval</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007000700" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007000700" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
 </head>
 <body class="screen-submit">
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -91,14 +91,24 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007000700"></script>
-  <script src="../../js/interactions.js?v=20261007000700"></script>
+  <script src="../../js/state.js?v=20261007110500"></script>
+  <script src="../../js/interactions.js?v=20261007110500"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
         ProtoState.setProtoVersion("v3", { reload: false });
       }
       ProtoState.setRole("builder");
+      if (!ProtoState.canMarkCompanyLevel()) {
+        ProtoUI.toast(
+          "Marking restricted — " + ProtoState.markPolicyLabel(),
+          "danger"
+        );
+        setTimeout(function () {
+          window.location.href = "02-builder-rails.html?proto=v3&beat=V3-02d";
+        }, 500);
+        return;
+      }
 
       const entities = ProtoState.WORKFLOW_SUBMIT_ENTITIES || [];
       const listEl = document.getElementById("entity-list");
@@ -241,7 +251,8 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
             type: "warning",
           })
         );
-        window.location.href = "01-enable-library.html?proto=v3&beat=V3-04";
+        // After submit, continue Blocks path (canvas use) — approvals are chunk 4
+        window.location.href = "07-compose-canvas.html?proto=v3&beat=V3-07b";
       });
 
       renderList();

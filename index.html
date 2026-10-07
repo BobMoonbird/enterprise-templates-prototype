@@ -1,8 +1,8 @@
 <!--
-PROTOTYPE: Enterprise templates — demo map (V2 full / V3 short)
-PURPOSE: Entry + screens grouped by role/job; switchable prototype version
+PROTOTYPE: Enterprise templates — demo map (V2 full / V3 shippable chunks)
+PURPOSE: Entry + screens; V3 grouped by Blocks · Admin restrict · Gallery · Admin approvals
 BLOCKS: ProtoChrome, VersionSwitcher, Button
-JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
+JOURNEY: Start here → V2 Security path or V3 chunk path
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -10,10 +10,10 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Enterprise templates · demo map</title>
-  <link rel="stylesheet" href="css/tokens.css?v=20261007000700" />
-  <link rel="stylesheet" href="css/base.css?v=20261007000700" />
-  <link rel="stylesheet" href="css/components.css?v=20261007000700" />
-  <link rel="stylesheet" href="css/screens.css?v=20261007000700" />
+  <link rel="stylesheet" href="css/tokens.css?v=20261007110500" />
+  <link rel="stylesheet" href="css/base.css?v=20261007110500" />
+  <link rel="stylesheet" href="css/components.css?v=20261007110500" />
+  <link rel="stylesheet" href="css/screens.css?v=20261007110500" />
 </head>
 <body>
   <main class="demo-map" data-block="AppShell">
@@ -46,14 +46,14 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
       </div>
     </div>
 
-    <section class="demo-map__screens" aria-label="Screens by role">
+    <section class="demo-map__screens" aria-label="Screens by section">
       <h2 class="demo-map__screens-title" id="screens-title">Screens by job / role</h2>
       <div class="demo-map-roles" id="screen-roles"></div>
     </section>
   </main>
 
-  <script src="js/state.js?v=20261007000700"></script>
-  <script src="js/interactions.js?v=20261007000700"></script>
+  <script src="js/state.js?v=20261007110500"></script>
+  <script src="js/interactions.js?v=20261007110500"></script>
   <script>
     (function () {
       const COPY = {
@@ -81,25 +81,29 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
           ],
           startFile: "screens/00-security-allowlist.html",
           startRole: "security",
+          groupBy: "role",
         },
         v3: {
           title: "Company building blocks",
           hero:
-            "<strong>Short prototype (V3)</strong> — go deep on one Must (company building-blocks library: " +
-            "tools / skills / agents) + one Should (create/copy rails across UI, AI, MCP). " +
-            "Security allowlist stays in Full (V2) only. Path: Admin settings (enable + approve) → Builder → Member compose.",
-          startLabel: "Start short path",
-          screensTitle: "Short spine by job / role",
+            "<strong>Short prototype (V3)</strong> — aligned to shippable chunks: " +
+            "<strong>Blocks</strong> (mark + use on canvas · AI/MCP without prompting) → " +
+            "<strong>Admin · restrict</strong> (who can mark) → " +
+            "<strong>Gallery</strong> (filter · Start workflow) → " +
+            "<strong>Admin · approvals</strong>. " +
+            "Security allowlist stays in Full (V2) only.",
+          startLabel: "Start short path (Blocks)",
+          screensTitle: "Shippable chunks",
           primary: [
-            "v3/01-enable-library.html",
             "v3/02-builder-rails.html",
             "v3/03-mark-company-block.html",
-            "v3/05-create-workflow.html",
-            "v3/06-blocks-gallery.html",
             "v3/07-compose-canvas.html",
+            "v3/01-enable-library.html",
+            "v3/06-blocks-gallery.html",
           ],
-          startFile: "screens/v3/01-enable-library.html",
-          startRole: "admin",
+          startFile: "screens/v3/02-builder-rails.html",
+          startRole: "builder",
+          groupBy: "section",
         },
       };
 
@@ -120,18 +124,6 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
         start.textContent = cfg.startLabel;
         start.href = cfg.startFile + "?proto=" + version;
 
-        const byRole = {};
-        ProtoState.DEMO_PATH.forEach(function (s) {
-          const r = s.role || "builder";
-          if (!byRole[r]) byRole[r] = [];
-          byRole[r].push(s);
-        });
-        Object.keys(byRole).forEach(function (r) {
-          byRole[r].sort(function (a, b) {
-            return (a.spur ? 1 : 0) - (b.spur ? 1 : 0);
-          });
-        });
-
         function cardHtml(s) {
           const isPrimary = cfg.primary.indexOf(s.file) >= 0;
           const base = (s.file || "").split("?")[0];
@@ -141,6 +133,9 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
           let href = "screens/" + base + "?proto=" + version;
           if (dupes.length > 1 && s.id) {
             href += "&beat=" + encodeURIComponent(s.id);
+          }
+          if (s.hash) {
+            href += "#" + String(s.hash).replace(/^#/, "");
           }
           return (
             '<a class="demo-map-card is-clickable' +
@@ -166,29 +161,74 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
         }
 
         const sections = ProtoState.DEMO_MAP_SECTIONS || [];
-        document.getElementById("screen-roles").innerHTML = sections
-          .map(function (sec) {
-            const role = ProtoState.ROLES[sec.role] || {};
-            const screens = byRole[sec.role] || [];
-            return (
-              '<section class="demo-map-role" data-role-section="' +
-              sec.role +
-              '">' +
-              '<header class="demo-map-role__head">' +
-              '<div class="demo-map-role__label">' +
-              (role.label || sec.role) +
-              "</div>" +
-              '<p class="demo-map-role__job">' +
-              (sec.job || role.description || "") +
-              "</p>" +
-              "</header>" +
-              '<div class="demo-map-grid">' +
-              screens.map(cardHtml).join("") +
-              "</div>" +
-              "</section>"
-            );
-          })
-          .join("");
+        const path = ProtoState.DEMO_PATH || [];
+
+        if (cfg.groupBy === "section") {
+          document.getElementById("screen-roles").innerHTML = sections
+            .map(function (sec) {
+              const screens = path
+                .filter(function (s) {
+                  return s.section === sec.id;
+                })
+                .slice()
+                .sort(function (a, b) {
+                  return (a.spur ? 1 : 0) - (b.spur ? 1 : 0);
+                });
+              return (
+                '<section class="demo-map-role" data-role-section="' +
+                (sec.id || sec.role) +
+                '">' +
+                '<header class="demo-map-role__head">' +
+                '<div class="demo-map-role__label">' +
+                (sec.label || (ProtoState.ROLES[sec.role] || {}).label || sec.id) +
+                "</div>" +
+                '<p class="demo-map-role__job">' +
+                (sec.job || "") +
+                "</p>" +
+                "</header>" +
+                '<div class="demo-map-grid">' +
+                screens.map(cardHtml).join("") +
+                "</div>" +
+                "</section>"
+              );
+            })
+            .join("");
+        } else {
+          const byRole = {};
+          path.forEach(function (s) {
+            const r = s.role || "builder";
+            if (!byRole[r]) byRole[r] = [];
+            byRole[r].push(s);
+          });
+          Object.keys(byRole).forEach(function (r) {
+            byRole[r].sort(function (a, b) {
+              return (a.spur ? 1 : 0) - (b.spur ? 1 : 0);
+            });
+          });
+          document.getElementById("screen-roles").innerHTML = sections
+            .map(function (sec) {
+              const role = ProtoState.ROLES[sec.role] || {};
+              const screens = byRole[sec.role] || [];
+              return (
+                '<section class="demo-map-role" data-role-section="' +
+                sec.role +
+                '">' +
+                '<header class="demo-map-role__head">' +
+                '<div class="demo-map-role__label">' +
+                (role.label || sec.role) +
+                "</div>" +
+                '<p class="demo-map-role__job">' +
+                (sec.job || role.description || "") +
+                "</p>" +
+                "</header>" +
+                '<div class="demo-map-grid">' +
+                screens.map(cardHtml).join("") +
+                "</div>" +
+                "</section>"
+              );
+            })
+            .join("");
+        }
       }
 
       document.getElementById("screen-roles").addEventListener("click", function (e) {
@@ -207,6 +247,9 @@ JOURNEY: Start here → V2 Security path or V3 Admin building-blocks path
       document.getElementById("btn-start").addEventListener("click", function () {
         const cfg = COPY[ProtoState.getProtoVersion()] || COPY.v2;
         ProtoState.setRole(cfg.startRole);
+        if (ProtoState.getProtoVersion() === "v3") {
+          ProtoState.setMarkPolicy("any_builder");
+        }
       });
 
       document.getElementById("btn-reset").addEventListener("click", function () {
