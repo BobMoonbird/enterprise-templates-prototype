@@ -1,7 +1,7 @@
 <!--
 PROTOTYPE SCREEN: V3-03 — Mark workflow entities as company level
 BLOCKS: ProtoChrome, AppShell, LifecycleBanner, Button, Toast
-JOURNEY BEAT: any_builder → publish immediately · gated policies → pending approval
+JOURNEY BEAT: V3-03 any_builder publish now · V3-03a custom_role submit → pending
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -9,10 +9,10 @@ JOURNEY BEAT: any_builder → publish immediately · gated policies → pending 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-03 · Mark as company level</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007122200" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007122200" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007122200" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007122200" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007124000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007124000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007124000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007124000" />
 </head>
 <body class="screen-submit">
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -88,8 +88,8 @@ JOURNEY BEAT: any_builder → publish immediately · gated policies → pending 
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007122200"></script>
-  <script src="../../js/interactions.js?v=20261007122200"></script>
+  <script src="../../js/state.js?v=20261007124000"></script>
+  <script src="../../js/interactions.js?v=20261007124000"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -98,10 +98,11 @@ JOURNEY BEAT: any_builder → publish immediately · gated policies → pending 
       ProtoState.setRole("builder");
       const params = new URLSearchParams(window.location.search || "");
       const beat = params.get("beat");
-      // Blocks happy-path card from the demo map → publish immediately (no sticky gated policy).
-      // Menu navigation omits beat= so custom_role+grant can still demo pending approval.
+      // Demo-map / menu beats pin policy so sticky localStorage can't lie.
       if (beat === "V3-03") {
         ProtoState.setMarkPolicy("any_builder");
+      } else if (beat === "V3-03a") {
+        ProtoState.ensureApprovalMarkPolicy();
       }
       if (!ProtoState.canMarkCompanyLevel()) {
         ProtoUI.toast(
@@ -109,7 +110,8 @@ JOURNEY BEAT: any_builder → publish immediately · gated policies → pending 
           "danger"
         );
         setTimeout(function () {
-          window.location.href = "02-builder-rails.html?proto=v3&beat=V3-02d";
+          const denyBeat = ProtoState.isMarkRestrictedDeadEnd() ? "V3-02d" : "V3-02a";
+          window.location.href = "02-builder-rails.html?proto=v3&beat=" + denyBeat;
         }, 500);
         return;
       }
@@ -138,7 +140,7 @@ JOURNEY BEAT: any_builder → publish immediately · gated policies → pending 
           document.getElementById("contrast-secondary-title").textContent =
             "No Admin queue";
           document.getElementById("contrast-secondary-body").textContent =
-            "Policy is Any builder — mark publishes; no pending approval.";
+            "Policy is Any builder (publish immediately) — no pending approval.";
           document.getElementById("entity-hint").innerHTML =
             "From <strong>Okta user resolve</strong> — select all or some to mark as company level.";
           document.getElementById("bb-note-label").textContent = "Library note";
@@ -146,21 +148,21 @@ JOURNEY BEAT: any_builder → publish immediately · gated policies → pending 
             "Reusable candidates from Okta user resolve.";
           submitBtn.textContent = "Mark selected as company level";
         } else {
-          document.title = "V3-03 · Submit for company approval";
+          document.title = "V3-03a · Submit for company approval";
           document.getElementById("page-title").textContent = "Submit for company approval";
           banner.className = "lifecycle-banner lifecycle-banner--draft";
           badge.className = "badge badge--draft";
           badge.textContent = "Not published";
           document.getElementById("lifecycle-copy").innerHTML =
-            "Submitting creates <strong>Pending</strong> company blocks — Members cannot use them until an Admin approves.";
+            "Policy is <strong>Builders submit for approval</strong> — creates <strong>Pending</strong> blocks. Members cannot use them until an Admin approves.";
           document.getElementById("contrast-primary-title").textContent =
             "Submit for company approval";
           document.getElementById("contrast-primary-body").textContent =
-            "Selected entities go to the Admin queue. Stays inside Acme.";
+            "Selected entities go to the Admin pending queue. Stays inside Acme.";
           document.getElementById("contrast-secondary-title").textContent =
             "Live for Members";
           document.getElementById("contrast-secondary-body").textContent =
-            "Only after Admin approve. Submit ≠ publish.";
+            "Only after Admin approve. Submit ≠ publish (not the restrict dead-end).";
           document.getElementById("entity-hint").innerHTML =
             "From <strong>Okta user resolve</strong> — select all or some to submit.";
           document.getElementById("bb-note-label").textContent = "Note to Admin";
@@ -319,7 +321,12 @@ JOURNEY BEAT: any_builder → publish immediately · gated policies → pending 
             type: published ? "success" : "warning",
           })
         );
-        window.location.href = "07-compose-canvas.html?proto=v3&beat=V3-07b";
+        // Chunk 4: after submit → Admin approvals queue; chunk 1: continue to canvas.
+        if (!published && (beat === "V3-03a" || ProtoState.isMarkApprovalMode())) {
+          window.location.href = "01-enable-library.html?proto=v3&beat=V3-01a#approvals";
+        } else {
+          window.location.href = "07-compose-canvas.html?proto=v3&beat=V3-07b";
+        }
       });
 
       applyPolicyCopy();

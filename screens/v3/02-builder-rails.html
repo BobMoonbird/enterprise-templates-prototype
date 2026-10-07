@@ -1,7 +1,7 @@
 <!--
 PROTOTYPE SCREEN: V3-02 — Build + mark as company block (gated by markPolicy)
 BLOCKS: ProtoChrome, WorkflowEditorChrome, NodePalette, Button, Menu, Modal, Toast
-JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
+JOURNEY BEAT: Chunk 1 any_builder · Chunk 2 V3-02d admin_only dead-end · Chunk 4 V3-02a submit-for-approval
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -9,10 +9,10 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-02 · Build under rails</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007122200" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007122200" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007122200" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007122200" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007124000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007124000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007124000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007124000" />
 </head>
 <body>
   <div data-block="WorkflowEditorChrome">
@@ -45,10 +45,12 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
       </div>
     </header>
     <div id="mark-denied-banner" class="mark-denied-banner" hidden>
-      You can’t mark company-level blocks — policy is
-      <strong id="mark-denied-policy">Only admin</strong>.
+      <span id="mark-denied-copy">
+        You can’t mark company-level blocks — policy is
+        <strong id="mark-denied-policy">Only admins</strong>.
+      </span>
       <button type="button" class="btn btn--secondary btn--sm" id="btn-request-mark" style="margin-left:8px">
-        Request access
+        Contact admin
       </button>
     </div>
     <div class="editor-body">
@@ -82,27 +84,28 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
     </div>
   </div>
 
+  <!-- Restricted dead-end (admin_only): no submit-for-approval path -->
   <div class="modal-backdrop" id="modal-mark-denied" data-block="Modal" aria-hidden="true">
     <div class="modal" role="dialog">
       <div class="modal__header">
-        <h2 class="modal__title">Can’t mark as company level</h2>
+        <h2 class="modal__title" id="modal-mark-title">Can’t mark as company level</h2>
         <button type="button" class="icon-btn" data-close-modal="modal-mark-denied">✕</button>
       </div>
       <div class="modal__body">
-        <p class="secondary">
-          Admin set <strong id="modal-mark-policy">Only admin</strong> as who can mark building blocks
-          as company level. Request access, or ask an Admin to mark this for you.
+        <p class="secondary" id="modal-mark-body">
+          Admin set <strong id="modal-mark-policy">Only admins (no approval flow)</strong>.
+          There is no submit-for-approval path yet — contact an Admin to mark this for you.
         </p>
       </div>
       <div class="modal__footer">
         <button type="button" class="btn btn--secondary" data-close-modal="modal-mark-denied">Dismiss</button>
-        <button type="button" class="btn btn--primary" id="btn-modal-request-mark">Request access</button>
+        <button type="button" class="btn btn--primary" id="btn-modal-request-mark">Contact admin</button>
       </div>
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007122200"></script>
-  <script src="../../js/interactions.js?v=20261007122200"></script>
+  <script src="../../js/state.js?v=20261007124000"></script>
+  <script src="../../js/interactions.js?v=20261007124000"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -117,9 +120,9 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
       const beat = params.get("beat");
       // Demo-map beats pin markPolicy so sticky localStorage from another chunk can't lie.
       if (beat === "V3-02d") {
-        if (ProtoState.getMarkPolicy() === "any_builder") {
-          ProtoState.setMarkPolicy("admin_only");
-        }
+        ProtoState.ensureRestrictedDeadEndPolicy();
+      } else if (beat === "V3-02a") {
+        ProtoState.ensureApprovalMarkPolicy();
       } else if (beat === "V3-02") {
         ProtoState.setMarkPolicy("any_builder");
       }
@@ -130,24 +133,67 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
 
       function syncMarkGate() {
         const allowed = canMark();
+        const deadEnd = ProtoState.isMarkRestrictedDeadEnd();
+        const approvalMode = ProtoState.isMarkApprovalMode();
         const menuItem = document.getElementById("menu-save-block");
         const banner = document.getElementById("mark-denied-banner");
         const desc = document.getElementById("menu-save-desc");
         const policyLabel = ProtoState.markPolicyLabel();
-        document.getElementById("mark-denied-policy").textContent = policyLabel;
+        const shortLabel = ProtoState.markPolicyShortLabel();
+        const btnBanner = document.getElementById("btn-request-mark");
+        const btnModal = document.getElementById("btn-modal-request-mark");
+
+        document.getElementById("mark-denied-policy").textContent = shortLabel;
         document.getElementById("modal-mark-policy").textContent = policyLabel;
+
+        const titleEl = menuItem.querySelector(".menu-item__title");
         if (allowed) {
           menuItem.classList.remove("is-denied");
           menuItem.classList.add("is-accent");
-          desc.textContent = ProtoState.marksPublishImmediately()
-            ? "Mark as company level — publishes immediately"
-            : "Submit for Admin approval — not live until approved";
+          if (ProtoState.marksPublishImmediately()) {
+            if (titleEl) titleEl.textContent = "Save as building block";
+            desc.textContent = "Mark as company level — publishes immediately";
+          } else {
+            if (titleEl) titleEl.textContent = "Submit for approval";
+            desc.textContent = "Send to Admin queue — not company-level until approved";
+          }
           banner.hidden = true;
         } else {
           menuItem.classList.add("is-denied");
           menuItem.classList.remove("is-accent");
-          desc.textContent =
-            "Restricted — " + policyLabel + ". Request access or ask Admin.";
+          if (titleEl) titleEl.textContent = "Save as building block";
+          if (deadEnd) {
+            desc.textContent =
+              "Restricted — only admins can mark. No approval flow yet.";
+            document.getElementById("mark-denied-copy").innerHTML =
+              "You can’t mark company-level blocks — <strong>Only admins (no approval flow)</strong>. No submit path · contact an Admin.";
+            document.getElementById("modal-mark-title").textContent =
+              "Marking not available";
+            document.getElementById("modal-mark-body").innerHTML =
+              "Admin set <strong>" +
+              policyLabel +
+              "</strong>. Builders cannot mark company level, and there is " +
+              "<strong>no submit-for-approval path</strong> yet. Contact an Admin to mark this for you — nothing goes to a pending queue.";
+            btnBanner.textContent = "Contact admin";
+            btnModal.textContent = "Contact admin";
+          } else if (approvalMode) {
+            desc.textContent =
+              "Your role isn’t granted to submit yet — ask Admin.";
+            document.getElementById("mark-denied-copy").innerHTML =
+              "Policy is <strong>Builders submit for approval</strong>, but your role isn’t granted yet.";
+            document.getElementById("modal-mark-title").textContent =
+              "Submit not granted for your role";
+            document.getElementById("modal-mark-body").innerHTML =
+              "Admin enabled <strong>" +
+              policyLabel +
+              "</strong>, but your role isn’t on the grant list. Ask Admin to grant Automation CoE builders — then you can submit for the pending queue.";
+            btnBanner.textContent = "Ask Admin to grant";
+            btnModal.textContent = "Ask Admin to grant";
+          } else {
+            desc.textContent = "Restricted — " + shortLabel + ".";
+            btnBanner.textContent = "Contact admin";
+            btnModal.textContent = "Contact admin";
+          }
           banner.hidden = false;
         }
       }
@@ -220,18 +266,33 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
           ProtoUI.openModal("modal-mark-denied");
           return;
         }
-        window.location.href = "03-mark-company-block.html?proto=v3";
+        const nextBeat = ProtoState.isMarkApprovalMode()
+          ? "V3-03a"
+          : beat === "V3-02"
+            ? "V3-03"
+            : "";
+        const q = nextBeat
+          ? "03-mark-company-block.html?proto=v3&beat=" + nextBeat
+          : "03-mark-company-block.html?proto=v3";
+        window.location.href = q;
       });
 
-      function requestMarkAccess() {
+      function contactAdmin() {
         ProtoUI.closeModal("modal-mark-denied");
-        ProtoUI.toast(
-          "Access requested — Admin notified (#automation-coe) to grant mark permission",
-          "success"
-        );
+        if (ProtoState.isMarkRestrictedDeadEnd()) {
+          ProtoUI.toast(
+            "Message sent to Admin — no pending queue (approval flow not available under this policy)",
+            "warning"
+          );
+        } else {
+          ProtoUI.toast(
+            "Asked Admin to grant submit permission (#automation-coe)",
+            "success"
+          );
+        }
       }
-      document.getElementById("btn-request-mark").addEventListener("click", requestMarkAccess);
-      document.getElementById("btn-modal-request-mark").addEventListener("click", requestMarkAccess);
+      document.getElementById("btn-request-mark").addEventListener("click", contactAdmin);
+      document.getElementById("btn-modal-request-mark").addEventListener("click", contactAdmin);
 
       document.addEventListener("proto:rerender", syncMarkGate);
       document.addEventListener("proto:rolechange", syncMarkGate);

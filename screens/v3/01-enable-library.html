@@ -9,10 +9,10 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3 · Building blocks settings</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007122200" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007122200" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007122200" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007122200" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007124000" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007124000" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007124000" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007124000" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -71,29 +71,30 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
             <div data-block="MarkPolicyControl" id="restrict">
               <h3>Who can mark building blocks as company level</h3>
               <p>
-                Controls who may use <strong>Save as building block</strong>. Default is any builder
-                (chunk 1). Flip to Only admin to demo the restricted Builder path.
+                Three demo modes. Default is <strong>Any builder</strong> (chunk 1 publish now).
+                Use <strong>Only admins</strong> for the restricted dead-end (chunk 2).
+                Use <strong>Builders submit for approval</strong> for pending → Admin queue (chunk 4).
               </p>
               <div class="mark-policy-options" role="radiogroup" aria-label="Who can mark as company level">
                 <button type="button" class="mark-policy-option is-clickable" data-mark-policy="any_builder">
                   <span class="mark-policy-option__radio" aria-hidden="true"></span>
                   <span>
-                    <div class="mark-policy-option__title">Any builder</div>
-                    <div class="mark-policy-option__desc">Builders mark → publishes immediately as company blocks</div>
+                    <div class="mark-policy-option__title">Any builder (publish immediately)</div>
+                    <div class="mark-policy-option__desc">Builders mark → live company blocks now · no Admin queue</div>
                   </span>
                 </button>
                 <button type="button" class="mark-policy-option is-clickable" data-mark-policy="admin_only">
                   <span class="mark-policy-option__radio" aria-hidden="true"></span>
                   <span>
-                    <div class="mark-policy-option__title">Only admin</div>
-                    <div class="mark-policy-option__desc">Builders see Save as building block denied · can request access</div>
+                    <div class="mark-policy-option__title">Only admins (no approval flow)</div>
+                    <div class="mark-policy-option__desc">Builder dead-end — denied · contact admin · no submit / no pending</div>
                   </span>
                 </button>
                 <button type="button" class="mark-policy-option is-clickable" data-mark-policy="custom_role">
                   <span class="mark-policy-option__radio" aria-hidden="true"></span>
                   <span>
-                    <div class="mark-policy-option__title">Custom role</div>
-                    <div class="mark-policy-option__desc">Assign who may mark · granted builders still go to approvals</div>
+                    <div class="mark-policy-option__title">Builders submit for approval</div>
+                    <div class="mark-policy-option__desc">Builders can submit → pending queue · Admin publishes</div>
                   </span>
                 </button>
               </div>
@@ -101,8 +102,8 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
                 <label>
                   <input type="checkbox" id="custom-mark-builders" />
                   <span>
-                    Grant <strong>Automation CoE</strong> builders permission to mark
-                    (prototype switch — off by default so Builder stays denied until you grant)
+                    Grant <strong>Automation CoE</strong> builders permission to submit
+                    (on by default under this mode — turn off to demo an un-granted Builder)
                   </span>
                 </label>
               </div>
@@ -113,8 +114,10 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
                 <h2 style="font-size:18px">Block approvals</h2>
                 <p id="approvals-intro">
                   Pending items are not visible to Members. Approve publishes to the
-                  building-blocks library. Under <strong>Any builder</strong>, marks skip
-                  this queue (publish immediately).
+                  building-blocks library. Fills when policy is
+                  <strong>Builders submit for approval</strong>. Under
+                  <strong>Any builder</strong>, marks skip this queue.
+                  <strong>Only admins</strong> has no Builder submit path (dead-end).
                 </p>
               </div>
 
@@ -129,7 +132,10 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
 
             <div style="margin-top:24px" class="flex gap-3" id="footer-actions">
               <a class="btn btn--primary" href="02-builder-rails.html?proto=v3&beat=V3-02d" id="next-builder-denied">
-                Next: Builder with restrict on →
+                Next: Builder dead-end (restrict) →
+              </a>
+              <a class="btn btn--ghost" href="02-builder-rails.html?proto=v3&beat=V3-02a" id="next-builder-submit">
+                Next: Builder submit for approval →
               </a>
               <a class="btn btn--ghost" href="06-blocks-gallery.html?proto=v3&role=member" id="next-gallery">
                 Next: Gallery →
@@ -144,8 +150,8 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007122200"></script>
-  <script src="../../js/interactions.js?v=20261007122200"></script>
+  <script src="../../js/state.js?v=20261007124000"></script>
+  <script src="../../js/interactions.js?v=20261007124000"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -166,14 +172,22 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
       }
 
       if (beat === "V3-01a" || hash === "approvals") {
+        // Chunk 4 Admin queue — prefer approval mode so empty-queue copy matches the story.
+        if (ProtoState.getMarkPolicy() === "admin_only") {
+          ProtoState.ensureApprovalMarkPolicy();
+        }
         scrollToId("approvals");
         document.getElementById("next-builder-denied").classList.remove("btn--primary");
         document.getElementById("next-builder-denied").classList.add("btn--ghost");
-        document.getElementById("next-gallery").classList.remove("btn--ghost");
-        document.getElementById("next-gallery").classList.add("btn--primary");
+        document.getElementById("next-builder-submit").classList.remove("btn--ghost");
+        document.getElementById("next-builder-submit").classList.add("btn--primary");
+        document.getElementById("next-builder-submit").textContent =
+          "Builder submit for approval →";
         document.getElementById("next-gallery").textContent = "Done · open gallery →";
       } else if (beat === "V3-01r" || hash === "restrict") {
         scrollToId("restrict");
+        document.getElementById("next-builder-submit").classList.add("btn--ghost");
+        document.getElementById("next-builder-submit").classList.remove("btn--primary");
       }
 
       let tab = "pending";
@@ -238,11 +252,14 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
           const pending = ProtoState.getPendingBlocks();
           if (!pending.length) {
             const anyBuilder = ProtoState.marksPublishImmediately();
+            const deadEnd = ProtoState.isMarkRestrictedDeadEnd();
             list.innerHTML =
               '<p class="secondary" style="margin-bottom:12px">' +
               (anyBuilder
-                ? "Queue empty — under <strong>Any builder</strong>, marking publishes immediately (no pending). Switch policy to Only admin / Custom role, or seed a demo pending item for this chunk."
-                : "Queue clear — have a granted Builder submit for approval, or seed a demo pending item.") +
+                ? "Queue empty — under <strong>Any builder (publish immediately)</strong>, marks skip this queue. Switch to <strong>Builders submit for approval</strong>, or seed a demo pending item."
+                : deadEnd
+                  ? "Queue empty — under <strong>Only admins (no approval flow)</strong>, Builders have no submit path (dead-end). Switch to <strong>Builders submit for approval</strong>, or seed a demo pending item."
+                  : "Queue clear — have a Builder submit for approval, or seed a demo pending item.") +
               "</p>" +
               '<button type="button" class="btn btn--secondary btn--sm" id="btn-seed-pending">Seed demo pending</button>';
             const seedBtn = document.getElementById("btn-seed-pending");
@@ -347,8 +364,8 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
         ProtoState.setCustomMarkIncludesBuilders(e.target.checked);
         ProtoUI.toast(
           e.target.checked
-            ? "Automation CoE builders may mark"
-            : "Only Admin may mark under custom role",
+            ? "Automation CoE builders may submit for approval"
+            : "Grant off — Builders see denied (still approval mode, not dead-end)",
           "success"
         );
       });
@@ -364,9 +381,14 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
       });
 
       document.getElementById("next-builder-denied").addEventListener("click", function () {
-        if (ProtoState.getMarkPolicy() === "any_builder") {
-          ProtoState.setMarkPolicy("admin_only");
+        ProtoState.ensureRestrictedDeadEndPolicy();
+        if (!ProtoState.get().libraryEnabled) {
+          ProtoState.setLibraryEnabled(true);
         }
+        ProtoState.setRole("builder");
+      });
+      document.getElementById("next-builder-submit").addEventListener("click", function () {
+        ProtoState.ensureApprovalMarkPolicy();
         if (!ProtoState.get().libraryEnabled) {
           ProtoState.setLibraryEnabled(true);
         }

@@ -541,7 +541,7 @@
       id: "V3-01r",
       file: "v3/01-enable-library.html",
       title: "Who can mark as company level",
-      beat: "Any builder / Only admin / Custom role",
+      beat: "Flip to Only admins (no approval flow)",
       role: "admin",
       section: "admin-restrict",
       hash: "restrict",
@@ -549,8 +549,8 @@
     {
       id: "V3-02d",
       file: "v3/02-builder-rails.html",
-      title: "Builder denied when mark is restricted",
-      beat: "Save as building block gated · request access",
+      title: "Builder dead-end when mark is admin-only",
+      beat: "Denied · contact admin · no submit / no pending queue",
       role: "builder",
       section: "admin-restrict",
     },
@@ -580,10 +580,26 @@
       spur: true,
     },
     {
+      id: "V3-02a",
+      file: "v3/02-builder-rails.html",
+      title: "Builder submits for Admin approval",
+      beat: "Save as building block · approval mode (not dead-end)",
+      role: "builder",
+      section: "admin-approvals",
+    },
+    {
+      id: "V3-03a",
+      file: "v3/03-mark-company-block.html",
+      title: "Submit entities for Admin approval",
+      beat: "Multi-select · pending until Admin approves",
+      role: "builder",
+      section: "admin-approvals",
+    },
+    {
       id: "V3-01a",
       file: "v3/01-enable-library.html",
       title: "Approve pending building blocks",
-      beat: "Approve / Request changes / Reject",
+      beat: "Queue from Builder submit · Approve / Request changes / Reject",
       role: "admin",
       section: "admin-approvals",
       hash: "approvals",
@@ -613,7 +629,7 @@
       id: "admin-restrict",
       label: "Admin · restrict",
       role: "admin",
-      job: "Who can mark as company level: any builder / only admin / custom role",
+      job: "Only admins (no approval flow) → Builder dead-end",
     },
     {
       id: "gallery",
@@ -625,7 +641,7 @@
       id: "admin-approvals",
       label: "Admin · approvals",
       role: "admin",
-      job: "Pending queue · Approve / Request changes / Reject",
+      job: "Builders submit for approval → pending queue → Approve / Reject",
     },
   ];
 
@@ -823,10 +839,19 @@
     return {
       role: "builder",
       libraryEnabled: false,
-      /** Who may mark building blocks as company level */
+      /**
+       * Who may mark building blocks as company level:
+       * - any_builder → Builder publishes immediately
+       * - admin_only → Builder dead-end (no approval flow / no pending path)
+       * - custom_role → Builders submit for Admin approval (pending queue)
+       */
       markPolicy: "any_builder", // any_builder | admin_only | custom_role
-      /** When markPolicy === custom_role: whether Automation CoE builders may mark */
-      customMarkIncludesBuilders: false,
+      /**
+       * When markPolicy === custom_role: grant Builders (Automation CoE) permission
+       * to submit for approval. Default on so “Builders submit for approval” works
+       * without an extra toggle; Admin can turn off to demo un-granted deny.
+       */
+      customMarkIncludesBuilders: true,
       nodes: JSON.parse(JSON.stringify(DEFAULT_NODES)),
       domains: JSON.parse(JSON.stringify(DEFAULT_DOMAINS)),
       templates: [],
@@ -1020,6 +1045,10 @@
         return state.markPolicy;
       }
       state.markPolicy = policy;
+      // Approval mode: grant Builders so submit-for-approval is demoable out of the box.
+      if (policy === "custom_role") {
+        state.customMarkIncludesBuilders = true;
+      }
       save(state);
       document.dispatchEvent(
         new CustomEvent("proto:markpolicychange", { detail: { markPolicy: policy } })
@@ -1035,8 +1064,8 @@
       return state.customMarkIncludesBuilders;
     },
     /**
-     * Whether the given role (or current role) may mark company-level building blocks.
-     * Gates Publish ▾ → Save as building block (chunk 2 unhappy path).
+     * Whether the given role (or current role) may mark / submit company-level blocks.
+     * admin_only → Builder false (dead-end). custom_role → Builder if CoE grant on.
      */
     canMarkCompanyLevel(roleId) {
       const role = roleId || state.role;
@@ -1048,7 +1077,7 @@
       if (policy === "admin_only") {
         return false;
       }
-      // custom_role: Admin always; Builders only if CoE grant is on
+      // custom_role = “Builders submit for approval”: granted Builders may submit (pending)
       if (policy === "custom_role") {
         return role === "builder" && !!state.customMarkIncludesBuilders;
       }
@@ -1056,17 +1085,55 @@
     },
     markPolicyLabel(policy) {
       const p = policy || state.markPolicy || "any_builder";
-      if (p === "admin_only") return "Only admin";
-      if (p === "custom_role") return "Custom role";
+      if (p === "admin_only") return "Only admins (no approval flow)";
+      if (p === "custom_role") return "Builders submit for approval";
+      return "Any builder (publish immediately)";
+    },
+    /** Short labels for compact UI (banner / menu). */
+    markPolicyShortLabel(policy) {
+      const p = policy || state.markPolicy || "any_builder";
+      if (p === "admin_only") return "Only admins";
+      if (p === "custom_role") return "Submit for approval";
       return "Any builder";
     },
     /**
-     * Only any_builder skips the Admin approvals gate.
-     * admin_only / custom_role keep pending → Admin approvals (chunk 4).
+     * Restricted dead-end: Builder cannot mark and there is no submit-for-approval path.
+     * Distinct from custom_role (approval mode).
+     */
+    isMarkRestrictedDeadEnd(policy) {
+      const p = policy || state.markPolicy || "any_builder";
+      return p === "admin_only";
+    },
+    /**
+     * Approval mode: Builder can submit selected entities → pending Admin queue.
+     * True when policy is custom_role (even if this Builder isn’t granted yet).
+     */
+    isMarkApprovalMode(policy) {
+      const p = policy || state.markPolicy || "any_builder";
+      return p === "custom_role";
+    },
+    /**
+     * Only any_builder skips the Admin approvals gate (publishes golden immediately).
+     * custom_role → pending. admin_only → Builder never reaches submit.
      */
     marksPublishImmediately(policy) {
       const p = policy || state.markPolicy || "any_builder";
       return p === "any_builder";
+    },
+    /**
+     * Pin approval-mode policy for chunk 4 demo beats (submit → Admin queue).
+     */
+    ensureApprovalMarkPolicy() {
+      this.setMarkPolicy("custom_role");
+      this.setCustomMarkIncludesBuilders(true);
+      return this.getMarkPolicy();
+    },
+    /**
+     * Pin restricted dead-end policy for chunk 2 demo beats.
+     */
+    ensureRestrictedDeadEndPolicy() {
+      this.setMarkPolicy("admin_only");
+      return this.getMarkPolicy();
     },
     /** V3: seed demo building blocks when jumping into late screens with empty catalog */
     ensureDemoBlocks() {
