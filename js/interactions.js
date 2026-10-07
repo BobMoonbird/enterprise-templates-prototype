@@ -91,16 +91,12 @@
     return matches[0];
   }
 
-  /** Build screen href; pass beat= when the same file appears twice in DEMO_PATH; honor entry.hash */
+  /** Build screen href; always pass beat= so happy-path screens can reset sticky markPolicy; honor entry.hash */
   function screenHref(entry, version) {
     const prefix = pathPrefix();
     const base = (entry.file || "").split("?")[0];
     let href = prefix + "screens/" + base + "?proto=" + version;
-    const path = ProtoState.DEMO_PATH || [];
-    const dupes = path.filter(function (s) {
-      return (s.file || "").split("?")[0] === base;
-    });
-    if (dupes.length > 1 && entry.id) {
+    if (entry.id) {
       href += "&beat=" + encodeURIComponent(entry.id);
     }
     if (entry.hash) {

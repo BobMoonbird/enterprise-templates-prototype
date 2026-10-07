@@ -9,10 +9,10 @@ JOURNEY BEAT: any_builder → publish immediately · gated policies → pending 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-03 · Mark as company level</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007115300" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007115300" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007115300" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007122200" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007122200" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007122200" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007122200" />
 </head>
 <body class="screen-submit">
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -88,14 +88,21 @@ JOURNEY BEAT: any_builder → publish immediately · gated policies → pending 
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007115300"></script>
-  <script src="../../js/interactions.js?v=20261007115300"></script>
+  <script src="../../js/state.js?v=20261007122200"></script>
+  <script src="../../js/interactions.js?v=20261007122200"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
         ProtoState.setProtoVersion("v3", { reload: false });
       }
       ProtoState.setRole("builder");
+      const params = new URLSearchParams(window.location.search || "");
+      const beat = params.get("beat");
+      // Blocks happy-path card from the demo map → publish immediately (no sticky gated policy).
+      // Menu navigation omits beat= so custom_role+grant can still demo pending approval.
+      if (beat === "V3-03") {
+        ProtoState.setMarkPolicy("any_builder");
+      }
       if (!ProtoState.canMarkCompanyLevel()) {
         ProtoUI.toast(
           "Marking restricted — " + ProtoState.markPolicyLabel(),

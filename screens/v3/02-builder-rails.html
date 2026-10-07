@@ -9,10 +9,10 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-02 · Build under rails</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007115300" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007115300" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007115300" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007122200" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007122200" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007122200" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007122200" />
 </head>
 <body>
   <div data-block="WorkflowEditorChrome">
@@ -101,8 +101,8 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007115300"></script>
-  <script src="../../js/interactions.js?v=20261007115300"></script>
+  <script src="../../js/state.js?v=20261007122200"></script>
+  <script src="../../js/interactions.js?v=20261007122200"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -115,9 +115,13 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
 
       const params = new URLSearchParams(window.location.search || "");
       const beat = params.get("beat");
-      // Chunk 2 unhappy path: ensure restrict is on when arriving as V3-02d
-      if (beat === "V3-02d" && ProtoState.getMarkPolicy() === "any_builder") {
-        ProtoState.setMarkPolicy("admin_only");
+      // Demo-map beats pin markPolicy so sticky localStorage from another chunk can't lie.
+      if (beat === "V3-02d") {
+        if (ProtoState.getMarkPolicy() === "any_builder") {
+          ProtoState.setMarkPolicy("admin_only");
+        }
+      } else if (beat === "V3-02") {
+        ProtoState.setMarkPolicy("any_builder");
       }
 
       function canMark() {
