@@ -9,10 +9,10 @@ JOURNEY BEAT: Filter by type · Start workflow from a card → compose canvas
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-06 · Building blocks gallery</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007115300" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -56,9 +56,10 @@ JOURNEY BEAT: Filter by type · Start workflow from a card → compose canvas
         <div id="empty-state" class="v3-empty-library" hidden>
           <h3>No company building blocks yet</h3>
           <p class="secondary">
-            The library is enabled, but nothing is published. Builders submit blocks;
-            Admins approve. The <strong>public gallery</strong> is still discovery-only —
-            it is not Acme’s system of record.
+            The library is enabled, but nothing is published yet. Builders can mark
+            company blocks (publishes immediately under Any builder). The
+            <strong>public gallery</strong> is still discovery-only — it is not Acme’s
+            system of record.
           </p>
           <div class="flex gap-2" style="justify-content:center;margin-top:16px;flex-wrap:wrap">
             <button type="button" class="btn btn--secondary btn--sm" id="btn-seed-demo">
@@ -79,8 +80,8 @@ JOURNEY BEAT: Filter by type · Start workflow from a card → compose canvas
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007110500"></script>
-  <script src="../../js/interactions.js?v=20261007110500"></script>
+  <script src="../../js/state.js?v=20261007115300"></script>
+  <script src="../../js/interactions.js?v=20261007115300"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {

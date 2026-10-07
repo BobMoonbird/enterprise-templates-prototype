@@ -9,10 +9,10 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3-02 · Build under rails</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007115300" />
 </head>
 <body>
   <div data-block="WorkflowEditorChrome">
@@ -36,7 +36,7 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
             <button type="button" class="menu-item is-accent" id="menu-save-block">
               <div>
                 <div class="menu-item__title">Save as building block</div>
-                <div class="menu-item__desc" id="menu-save-desc">Submit for Admin approval — not live until approved</div>
+                <div class="menu-item__desc" id="menu-save-desc">Mark as company level — publishes immediately</div>
               </div>
             </button>
           </div>
@@ -101,8 +101,8 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007110500"></script>
-  <script src="../../js/interactions.js?v=20261007110500"></script>
+  <script src="../../js/state.js?v=20261007115300"></script>
+  <script src="../../js/interactions.js?v=20261007115300"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -135,7 +135,9 @@ JOURNEY BEAT: Chunk 1 Save as building block · Chunk 2 denied when admin_only
         if (allowed) {
           menuItem.classList.remove("is-denied");
           menuItem.classList.add("is-accent");
-          desc.textContent = "Submit for Admin approval — not live until approved";
+          desc.textContent = ProtoState.marksPublishImmediately()
+            ? "Mark as company level — publishes immediately"
+            : "Submit for Admin approval — not live until approved";
           banner.hidden = true;
         } else {
           menuItem.classList.add("is-denied");

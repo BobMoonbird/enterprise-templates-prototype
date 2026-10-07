@@ -1,18 +1,18 @@
 <!--
-PROTOTYPE SCREEN: V3-03 — Submit workflow entities for company approval
+PROTOTYPE SCREEN: V3-03 — Mark workflow entities as company level
 BLOCKS: ProtoChrome, AppShell, LifecycleBanner, Button, Toast
-JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS workflow
+JOURNEY BEAT: any_builder → publish immediately · gated policies → pending approval
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>V3-03 · Submit for company approval</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
+  <title>V3-03 · Mark as company level</title>
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007115300" />
 </head>
 <body class="screen-submit">
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -30,26 +30,23 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
 
     <div class="app-shell__main">
       <header class="app-shell__topbar">
-        <strong>Save as building block</strong>
+        <strong id="page-title">Mark as company level</strong>
         <a class="btn btn--ghost btn--sm" href="02-builder-rails.html?proto=v3">← Back to editor</a>
       </header>
       <div class="app-shell__content">
-        <div class="lifecycle-banner lifecycle-banner--draft" data-block="LifecycleBanner" style="border-radius:8px;margin-bottom:24px;border:1px solid var(--border);max-width:720px">
-          <span class="badge badge--draft">Not published</span>
-          <span>
-            Submitting creates <strong>Pending</strong> company blocks — Members cannot use them
-            until an Admin approves.
-          </span>
+        <div class="lifecycle-banner" id="lifecycle-banner" data-block="LifecycleBanner" style="border-radius:8px;margin-bottom:24px;border:1px solid var(--border);max-width:720px">
+          <span class="badge" id="lifecycle-badge">Published</span>
+          <span id="lifecycle-copy"></span>
         </div>
 
-        <div class="submit-vs-publish" style="margin-bottom:24px;max-width:720px">
-          <div class="contrast-card contrast-card--good">
-            <strong>Submit for company approval</strong>
-            Selected entities go to the Admin queue. Stays inside Acme.
+        <div class="submit-vs-publish" id="contrast-cards" style="margin-bottom:24px;max-width:720px">
+          <div class="contrast-card contrast-card--good" id="contrast-primary">
+            <strong id="contrast-primary-title">Mark as company level</strong>
+            <span id="contrast-primary-body"></span>
           </div>
-          <div class="contrast-card contrast-card--muted">
-            <strong>Live for Members</strong>
-            Only after Admin approve. Submit ≠ publish.
+          <div class="contrast-card contrast-card--muted" id="contrast-secondary">
+            <strong id="contrast-secondary-title">Live for Members</strong>
+            <span id="contrast-secondary-body"></span>
           </div>
         </div>
 
@@ -59,8 +56,8 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
               <div class="entity-list__header">
                 <div>
                   <label style="margin:0">Entities in this workflow</label>
-                  <p class="secondary" style="margin:4px 0 0;font-size:12px">
-                    From <strong>Okta user resolve</strong> — select all or some to submit.
+                  <p class="secondary" style="margin:4px 0 0;font-size:12px" id="entity-hint">
+                    From <strong>Okta user resolve</strong> — select all or some to mark.
                   </p>
                 </div>
                 <div class="entity-list__bulk">
@@ -72,8 +69,8 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
               <p class="secondary" id="selection-count" style="margin-top:10px;font-size:12px"></p>
             </div>
             <div class="field">
-              <label for="bb-note">Note to Admin</label>
-              <textarea id="bb-note">Reusable candidates from Okta user resolve — please review for company library.</textarea>
+              <label for="bb-note" id="bb-note-label">Library note</label>
+              <textarea id="bb-note">Reusable candidates from Okta user resolve.</textarea>
             </div>
             <div class="field">
               <label for="bb-owner">Owner</label>
@@ -83,7 +80,7 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
           <div class="submit-form__actions">
             <a class="btn btn--ghost" href="02-builder-rails.html?proto=v3">Cancel</a>
             <button type="submit" class="btn btn--primary" id="btn-submit" data-block="Button">
-              Submit selected for approval
+              Mark selected as company level
             </button>
           </div>
         </form>
@@ -91,8 +88,8 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007110500"></script>
-  <script src="../../js/interactions.js?v=20261007110500"></script>
+  <script src="../../js/state.js?v=20261007115300"></script>
+  <script src="../../js/interactions.js?v=20261007115300"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -110,16 +107,69 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
         return;
       }
 
+      const immediate = ProtoState.marksPublishImmediately();
       const entities = ProtoState.WORKFLOW_SUBMIT_ENTITIES || [];
       const listEl = document.getElementById("entity-list");
       const countEl = document.getElementById("selection-count");
       const submitBtn = document.getElementById("btn-submit");
 
+      function applyPolicyCopy() {
+        const banner = document.getElementById("lifecycle-banner");
+        const badge = document.getElementById("lifecycle-badge");
+        if (immediate) {
+          document.title = "V3-03 · Mark as company level";
+          document.getElementById("page-title").textContent = "Mark as company level";
+          banner.className = "lifecycle-banner lifecycle-banner--golden";
+          badge.className = "badge badge--golden";
+          badge.textContent = "Publishes now";
+          document.getElementById("lifecycle-copy").innerHTML =
+            "Marking creates <strong>Published</strong> company blocks — Members can use them immediately.";
+          document.getElementById("contrast-primary-title").textContent =
+            "Mark as company level";
+          document.getElementById("contrast-primary-body").textContent =
+            "Selected entities become live company blocks. Stays inside Acme.";
+          document.getElementById("contrast-secondary-title").textContent =
+            "No Admin queue";
+          document.getElementById("contrast-secondary-body").textContent =
+            "Policy is Any builder — mark publishes; no pending approval.";
+          document.getElementById("entity-hint").innerHTML =
+            "From <strong>Okta user resolve</strong> — select all or some to mark as company level.";
+          document.getElementById("bb-note-label").textContent = "Library note";
+          document.getElementById("bb-note").value =
+            "Reusable candidates from Okta user resolve.";
+          submitBtn.textContent = "Mark selected as company level";
+        } else {
+          document.title = "V3-03 · Submit for company approval";
+          document.getElementById("page-title").textContent = "Submit for company approval";
+          banner.className = "lifecycle-banner lifecycle-banner--draft";
+          badge.className = "badge badge--draft";
+          badge.textContent = "Not published";
+          document.getElementById("lifecycle-copy").innerHTML =
+            "Submitting creates <strong>Pending</strong> company blocks — Members cannot use them until an Admin approves.";
+          document.getElementById("contrast-primary-title").textContent =
+            "Submit for company approval";
+          document.getElementById("contrast-primary-body").textContent =
+            "Selected entities go to the Admin queue. Stays inside Acme.";
+          document.getElementById("contrast-secondary-title").textContent =
+            "Live for Members";
+          document.getElementById("contrast-secondary-body").textContent =
+            "Only after Admin approve. Submit ≠ publish.";
+          document.getElementById("entity-hint").innerHTML =
+            "From <strong>Okta user resolve</strong> — select all or some to submit.";
+          document.getElementById("bb-note-label").textContent = "Note to Admin";
+          document.getElementById("bb-note").value =
+            "Reusable candidates from Okta user resolve — please review for company library.";
+          submitBtn.textContent = "Submit selected for approval";
+        }
+      }
+
       function selectedIds() {
-        return Array.prototype.map
-          .call(listEl.querySelectorAll('input[type="checkbox"]:checked'), function (cb) {
+        return Array.prototype.map.call(
+          listEl.querySelectorAll('input[type="checkbox"]:checked'),
+          function (cb) {
             return cb.value;
-          });
+          }
+        );
       }
 
       function updateCount() {
@@ -127,10 +177,15 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
         const total = entities.filter(function (e) {
           return e.kind !== "agent" || e.name;
         }).length;
-        countEl.textContent =
-          n === 0
-            ? "Nothing selected — pick at least one entity."
-            : n + " of " + total + " selected · pending until Admin approves";
+        if (n === 0) {
+          countEl.textContent = "Nothing selected — pick at least one entity.";
+        } else if (immediate) {
+          countEl.textContent =
+            n + " of " + total + " selected · will publish as company blocks now";
+        } else {
+          countEl.textContent =
+            n + " of " + total + " selected · pending until Admin approves";
+        }
         submitBtn.disabled = n === 0;
       }
 
@@ -239,22 +294,28 @@ JOURNEY BEAT: Submit ≠ publish — multi-select concrete entities from THIS wo
           ProtoState.setLibraryEnabled(true);
         }
         const n = created.length;
+        const published = ProtoState.marksPublishImmediately();
         sessionStorage.setItem(
           "proto-flash",
           JSON.stringify({
-            message:
-              "Submitted " +
-              n +
-              " pending block" +
-              (n === 1 ? "" : "s") +
-              " — not live for Members until Admin approves",
-            type: "warning",
+            message: published
+              ? "Marked " +
+                n +
+                " company block" +
+                (n === 1 ? "" : "s") +
+                " — published and live for Members"
+              : "Submitted " +
+                n +
+                " pending block" +
+                (n === 1 ? "" : "s") +
+                " — not live for Members until Admin approves",
+            type: published ? "success" : "warning",
           })
         );
-        // After submit, continue Blocks path (canvas use) — approvals are chunk 4
         window.location.href = "07-compose-canvas.html?proto=v3&beat=V3-07b";
       });
 
+      applyPolicyCopy();
       renderList();
     })();
   </script>

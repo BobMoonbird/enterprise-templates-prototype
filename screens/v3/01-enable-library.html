@@ -9,10 +9,10 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V3 · Building blocks settings</title>
-  <link rel="stylesheet" href="../../css/tokens.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/base.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/components.css?v=20261007110500" />
-  <link rel="stylesheet" href="../../css/screens.css?v=20261007110500" />
+  <link rel="stylesheet" href="../../css/tokens.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/base.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/components.css?v=20261007115300" />
+  <link rel="stylesheet" href="../../css/screens.css?v=20261007115300" />
 </head>
 <body>
   <div data-block="AppShell" class="flex" style="min-height:calc(100vh - 44px)">
@@ -79,7 +79,7 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
                   <span class="mark-policy-option__radio" aria-hidden="true"></span>
                   <span>
                     <div class="mark-policy-option__title">Any builder</div>
-                    <div class="mark-policy-option__desc">Builders can submit their blocks for Admin approval</div>
+                    <div class="mark-policy-option__desc">Builders mark → publishes immediately as company blocks</div>
                   </span>
                 </button>
                 <button type="button" class="mark-policy-option is-clickable" data-mark-policy="admin_only">
@@ -93,7 +93,7 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
                   <span class="mark-policy-option__radio" aria-hidden="true"></span>
                   <span>
                     <div class="mark-policy-option__title">Custom role</div>
-                    <div class="mark-policy-option__desc">Assign a custom role (e.g. Automation CoE) who may mark</div>
+                    <div class="mark-policy-option__desc">Assign who may mark · granted builders still go to approvals</div>
                   </span>
                 </button>
               </div>
@@ -111,9 +111,10 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
             <div style="margin-top:28px" data-block="ApprovalQueue" id="approvals">
               <div class="settings-panel__header" style="margin-bottom:16px">
                 <h2 style="font-size:18px">Block approvals</h2>
-                <p>
+                <p id="approvals-intro">
                   Pending items are not visible to Members. Approve publishes to the
-                  building-blocks library.
+                  building-blocks library. Under <strong>Any builder</strong>, marks skip
+                  this queue (publish immediately).
                 </p>
               </div>
 
@@ -143,8 +144,8 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
     </div>
   </div>
 
-  <script src="../../js/state.js?v=20261007110500"></script>
-  <script src="../../js/interactions.js?v=20261007110500"></script>
+  <script src="../../js/state.js?v=20261007115300"></script>
+  <script src="../../js/interactions.js?v=20261007115300"></script>
   <script>
     (function () {
       if (ProtoState.getProtoVersion() !== "v3") {
@@ -236,8 +237,22 @@ JOURNEY BEAT: Chunk 2 (#restrict) who can mark · Chunk 4 (#approvals) pending q
         if (tab === "pending") {
           const pending = ProtoState.getPendingBlocks();
           if (!pending.length) {
+            const anyBuilder = ProtoState.marksPublishImmediately();
             list.innerHTML =
-              '<p class="secondary">Queue clear — approve from a Builder submit, or continue to Gallery.</p>';
+              '<p class="secondary" style="margin-bottom:12px">' +
+              (anyBuilder
+                ? "Queue empty — under <strong>Any builder</strong>, marking publishes immediately (no pending). Switch policy to Only admin / Custom role, or seed a demo pending item for this chunk."
+                : "Queue clear — have a granted Builder submit for approval, or seed a demo pending item.") +
+              "</p>" +
+              '<button type="button" class="btn btn--secondary btn--sm" id="btn-seed-pending">Seed demo pending</button>';
+            const seedBtn = document.getElementById("btn-seed-pending");
+            if (seedBtn) {
+              seedBtn.addEventListener("click", function () {
+                ProtoState.ensureDemoPendingBlocks();
+                ProtoUI.toast("Demo pending block added to the queue", "success");
+                renderQueue();
+              });
+            }
             return;
           }
           list.innerHTML = pending

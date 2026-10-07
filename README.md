@@ -72,22 +72,30 @@ Spurs: **07** AI, **09** MCP, **10** / **10b** skills/blocks.
 ## V3 shippable chunks (~60s)
 
 1. **Blocks · V3-02** Builder canvas → Publish ▾ → Save as building block  
-2. **Blocks · V3-03** Multi-select entities · submit ≠ publish  
+2. **Blocks · V3-03** Multi-select entities · mark → **publish immediately** (any_builder)  
 3. **Blocks · V3-07b** Use company blocks on canvas (sidecar)  
 4. *(spurs)* **V3-08 / V3-09** AI + MCP use blocks **without prompting**  
 5. **Admin · restrict · V3-01r** Who can mark → flip to Only admin  
 6. **Admin · restrict · V3-02d** Builder Save as building block denied · request access  
 7. **Gallery · V3-06** Filter Tools / Skills / Agents → **Start workflow**  
 8. **Gallery · V3-07** Compose canvas with block pre-pinned  
-9. **Admin · approvals · V3-01a** Approve / Request changes / Reject  
+9. **Admin · approvals · V3-01a** Approve / Request changes / Reject (seed pending or use gated policy)
 
 Blank create (`V3-05`) is a **demoted spur** — not the Member primary path.
+
+### Mark policy → publish behavior
+
+| Policy | Builder can mark? | On mark |
+|--------|-------------------|---------|
+| **any_builder** (default) | Yes | **Published / golden immediately** — no approvals queue |
+| **admin_only** | No (denied · request access) | — |
+| **custom_role** | Only if CoE grant is on | **Pending** → Admin approvals |
 
 ### V3 unhappy-path beats
 
 1. Empty library after enable  
-2. Submit vs publish toast/copy  
-3. Mark policy → Builder denied  
+2. Mark policy → Builder denied (admin_only / custom without grant)  
+3. Gated mark → pending ≠ publish (custom_role with grant)  
 4. AI/MCP secondary out-of-policy refuse (primary story = ambient use)
 
 ## Screen list (V3)
@@ -95,7 +103,7 @@ Blank create (`V3-05`) is a **demoted spur** — not the Member primary path.
 | File | Chunk | Beat |
 |------|-------|------|
 | `screens/v3/02-builder-rails.html` | Blocks / Restrict deny | Mark gated by `markPolicy` |
-| `screens/v3/03-mark-company-block.html` | Blocks | Multi-select · submit ≠ publish |
+| `screens/v3/03-mark-company-block.html` | Blocks | Multi-select · publish now (any_builder) or pending |
 | `screens/v3/07-compose-canvas.html` | Blocks + Gallery | Sidecar / Start workflow landing |
 | `screens/v3/08-ai-assist.html` | Blocks spur | Uses blocks without prompting |
 | `screens/v3/09-mcp.html` | Blocks spur | Uses blocks without prompting |

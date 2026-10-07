@@ -172,9 +172,9 @@ Index uses `css/` and `js/` without `../`.
 |--|--|
 | **Purpose** | Admin setting: who may mark building blocks as company level (`any_builder` / `admin_only` / `custom_role`) |
 | **CSS** | `[data-block="MarkPolicyControl"]`, `.mark-policy-option*`, `.mark-denied-banner` |
-| **JS** | `ProtoState.setMarkPolicy`, `canMarkCompanyLevel`, `setCustomMarkIncludesBuilders`; gates V3-02 Save as building block |
+| **JS** | `ProtoState.setMarkPolicy`, `canMarkCompanyLevel`, `marksPublishImmediately`, `setCustomMarkIncludesBuilders`; gates V3-02 Save as building block |
 | **Screens** | V3 `01-enable-library` (`#restrict`) |
-| **Move/change** | Default `any_builder`. Chunk 2 demo flips to `admin_only` then opens Builder deny beat. |
+| **Move/change** | Default `any_builder` → mark publishes golden immediately. Only `any_builder` skips approvals; `admin_only` / `custom_role` keep pending. Chunk 2 flips to `admin_only` then Builder deny. |
 
 ### WorkflowEditorChrome
 
@@ -336,10 +336,12 @@ ProtoState.confirmPendingBlock() // V2 applies block + fills lastBlockAction →
 ProtoState.submitDraftAsPending({ name, note, owner, contributors, targetGroups })
 ProtoState.updateTemplateStatus(id, 'golden')
 ProtoState.getBlocks('tool'|'skill'|'agent'|null) // V3
-ProtoState.submitCompanyBlock({ kind, name, description, owner, note })
+ProtoState.marksPublishImmediately() // true only for any_builder
+ProtoState.submitCompanyBlock({ kind, name, description, owner, note }) // golden if immediate else pending
 ProtoState.submitCompanyBlocks(entities, shared) // V3 multi-select
 ProtoState.updateBlockStatus(id, 'golden'|'changes'|'draft', extra?)
 ProtoState.ensureDemoBlocks() // V3 seed when jumping to late screens
+ProtoState.ensureDemoPendingBlocks() // seed pending for chunk 4 when queue empty
 ProtoState.insertBlockIntoWorkflow(id)
 ProtoState.setProvenance({ type: 'library'|'ai'|'mcp'|'skill'|'block'|…, … })
 ProtoState.getSkills('skill'|'block'|null)

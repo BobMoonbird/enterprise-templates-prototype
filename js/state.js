@@ -506,8 +506,8 @@
     {
       id: "V3-03",
       file: "v3/03-mark-company-block.html",
-      title: "Submit workflow entities for company approval",
-      beat: "Multi-select entities · submit ≠ publish",
+      title: "Mark workflow entities as company level",
+      beat: "Multi-select · publish immediately (any_builder)",
       role: "builder",
       section: "blocks",
     },
@@ -1060,6 +1060,14 @@
       if (p === "custom_role") return "Custom role";
       return "Any builder";
     },
+    /**
+     * Only any_builder skips the Admin approvals gate.
+     * admin_only / custom_role keep pending → Admin approvals (chunk 4).
+     */
+    marksPublishImmediately(policy) {
+      const p = policy || state.markPolicy || "any_builder";
+      return p === "any_builder";
+    },
     /** V3: seed demo building blocks when jumping into late screens with empty catalog */
     ensureDemoBlocks() {
       if (!state.blocks) state.blocks = [];
@@ -1093,7 +1101,10 @@
         return b.status === "golden";
       });
     },
-    /** Builder marks a unit as company building block → pending (not live). */
+    /**
+     * Builder marks a unit as company building block.
+     * any_builder → published/golden immediately; otherwise → pending Admin approval.
+     */
     submitCompanyBlock(opts) {
       if (!state.blocks) state.blocks = [];
       const kindRaw = (opts && opts.kind) || "skill";
@@ -1105,6 +1116,7 @@
           ? kindRaw
           : "skill";
       const owner = (opts && opts.owner) || "You";
+      const immediate = this.marksPublishImmediately();
       const id =
         (opts && opts.idPrefix ? opts.idPrefix + "-" : "bb-submitted-") +
         Date.now() +
@@ -1115,7 +1127,7 @@
         kind: kind,
         name: (opts && opts.name) || "Untitled building block",
         description: (opts && opts.description) || "",
-        status: "pending",
+        status: immediate ? "golden" : "pending",
         category: (opts && opts.category) || "Ops",
         version: (opts && opts.version) || "1.0",
         owner: owner,
@@ -1126,7 +1138,11 @@
         inputs: (opts && opts.inputs) || [],
         outputs: (opts && opts.outputs) || [],
         submittedAt: new Date().toISOString().slice(0, 10),
-        submitNote: (opts && opts.note) || "Submitted as company building block — awaiting Admin.",
+        submitNote:
+          (opts && opts.note) ||
+          (immediate
+            ? "Marked as company building block — live for Members."
+            : "Submitted as company building block — awaiting Admin."),
         sourceEntityId: (opts && opts.sourceEntityId) || null,
       };
       state.blocks.unshift(item);
@@ -1135,8 +1151,8 @@
       return item;
     },
     /**
-     * Submit multiple concrete entities from a workflow for Admin approval.
-     * Each selected entity becomes its own pending company block.
+     * Mark multiple concrete entities from a workflow as company blocks.
+     * Status follows marksPublishImmediately() (golden vs pending).
      */
     submitCompanyBlocks(entities, shared) {
       shared = shared || {};
@@ -1160,6 +1176,30 @@
         created.push(item);
       }, this);
       return created;
+    },
+    /**
+     * Seed one pending block for chunk 4 demos when the queue is empty
+     * (e.g. after any_builder marks published everything, then flip policy).
+     */
+    ensureDemoPendingBlocks() {
+      if (!state.blocks) state.blocks = [];
+      if (this.getPendingBlocks().length) return this.getPendingBlocks();
+      const seed = JSON.parse(
+        JSON.stringify(
+          DEFAULT_V3_BLOCKS.find(function (b) {
+            return b.status === "pending";
+          }) || DEFAULT_V3_BLOCKS[DEFAULT_V3_BLOCKS.length - 1]
+        )
+      );
+      seed.id = "bb-demo-pending-" + Date.now();
+      seed.status = "pending";
+      seed.submittedAt = new Date().toISOString().slice(0, 10);
+      seed.submitNote =
+        seed.submitNote || "Demo pending — seeded for Admin approvals chunk.";
+      state.blocks.unshift(seed);
+      state.libraryEnabled = true;
+      save(state);
+      return this.getPendingBlocks();
     },
     updateBlockStatus(id, status, extra) {
       if (!state.blocks) state.blocks = [];
