@@ -75,35 +75,37 @@ Spurs: **07** AI, **09** MCP, **10** / **10b** skills/blocks.
 2. **Blocks · V3-03** Multi-select entities · mark → **publish immediately** (any_builder)  
 3. **Blocks · V3-07b** Use company blocks on canvas (sidecar)  
 4. *(spurs)* **V3-08 / V3-09** AI + MCP use blocks **without prompting**  
-5. **Admin · restrict · V3-01r** Who can mark → flip to Only admin  
-6. **Admin · restrict · V3-02d** Builder Save as building block denied · request access  
+5. **Admin · restrict · V3-01r** Who can mark → flip to **Only admins (no approval flow)**  
+6. **Admin · restrict · V3-02d** Builder **dead-end** — denied · contact admin · no submit / no pending  
 7. **Gallery · V3-06** Filter Tools / Skills / Agents → **Start workflow**  
 8. **Gallery · V3-07** Compose canvas with block pre-pinned  
-9. **Admin · approvals · V3-01a** Approve / Request changes / Reject (seed pending or use gated policy)
+9. **Admin · approvals · V3-02a** Builder under **Builders submit for approval**  
+10. **Admin · approvals · V3-03a** Multi-select · submit → pending  
+11. **Admin · approvals · V3-01a** Approve / Request changes / Reject
 
 Blank create (`V3-05`) is a **demoted spur** — not the Member primary path.
 
-### Mark policy → publish behavior
+### Mark policy → two gated experiences
 
-| Policy | Builder can mark? | On mark |
+| Policy (Admin label) | Builder experience | On mark / submit |
 |--------|-------------------|---------|
-| **any_builder** (default) | Yes | **Published / golden immediately** — no approvals queue |
-| **admin_only** | No (denied · request access) | — |
-| **custom_role** | Only if CoE grant is on | **Pending** → Admin approvals |
+| **any_builder** — Any builder (publish immediately) | Can mark | **Published / golden immediately** — no queue |
+| **admin_only** — Only admins (no approval flow) | **Dead-end** — denied · contact admin · **no** submit CTA into pending | — |
+| **custom_role** — Builders submit for approval | Can submit (CoE grant on by default) | **Pending** → Admin approvals |
 
 ### V3 unhappy-path beats
 
 1. Empty library after enable  
-2. Mark policy → Builder denied (admin_only / custom without grant)  
-3. Gated mark → pending ≠ publish (custom_role with grant)  
+2. Restrict dead-end (`admin_only` / V3-02d) — no pending path  
+3. Submit ≠ publish (`custom_role` / V3-02a→03a→01a)  
 4. AI/MCP secondary out-of-policy refuse (primary story = ambient use)
 
 ## Screen list (V3)
 
 | File | Chunk | Beat |
 |------|-------|------|
-| `screens/v3/02-builder-rails.html` | Blocks / Restrict deny | Mark gated by `markPolicy` |
-| `screens/v3/03-mark-company-block.html` | Blocks | Multi-select · publish now (any_builder) or pending |
+| `screens/v3/02-builder-rails.html` | Blocks / Restrict dead-end / Approvals submit | `markPolicy` gate · V3-02d vs V3-02a |
+| `screens/v3/03-mark-company-block.html` | Blocks / Approvals | V3-03 publish now · V3-03a submit pending |
 | `screens/v3/07-compose-canvas.html` | Blocks + Gallery | Sidecar / Start workflow landing |
 | `screens/v3/08-ai-assist.html` | Blocks spur | Uses blocks without prompting |
 | `screens/v3/09-mcp.html` | Blocks spur | Uses blocks without prompting |
@@ -129,6 +131,6 @@ See [`ARCHITECTURE.md`](ARCHITECTURE.md) for building blocks, version switch, ch
 ## Fake data
 
 - Runtime seeds in `js/state.js` (`DEFAULT_TEMPLATES`, `DEFAULT_SKILLS`, `DEFAULT_V3_BLOCKS`, allowlist, `BLOCK_IMPACT`)
-- V3 `markPolicy`: `any_builder` (default) · `admin_only` · `custom_role`
+- V3 `markPolicy`: `any_builder` (default) · `admin_only` (dead-end) · `custom_role` (submit for approval)
 - Reference JSON in `data/` (mirrored for `file://`)
 - V3 defaults start with an **empty** published catalog so the empty-library beat works; late screens call `ensureDemoBlocks()` when jumping ahead

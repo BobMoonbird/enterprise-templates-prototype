@@ -174,7 +174,7 @@ Index uses `css/` and `js/` without `../`.
 | **CSS** | `[data-block="MarkPolicyControl"]`, `.mark-policy-option*`, `.mark-denied-banner` |
 | **JS** | `ProtoState.setMarkPolicy`, `canMarkCompanyLevel`, `marksPublishImmediately`, `setCustomMarkIncludesBuilders`; gates V3-02 Save as building block |
 | **Screens** | V3 `01-enable-library` (`#restrict`) |
-| **Move/change** | Default `any_builder` → mark publishes golden immediately. Only `any_builder` skips approvals; `admin_only` / `custom_role` keep pending. Chunk 2 flips to `admin_only` then Builder deny. |
+| **Move/change** | Default `any_builder` → publish immediately. `admin_only` → Builder **dead-end** (no submit / no pending). `custom_role` → Builders submit → pending (chunk 4). Labels: “Only admins (no approval flow)” vs “Builders submit for approval”. |
 
 ### WorkflowEditorChrome
 
@@ -312,9 +312,9 @@ Index uses `css/` and `js/` without `../`.
 | Chunk | DEMO_PATH ids | Files |
 |-------|---------------|-------|
 | Blocks | V3-02, V3-03, V3-07b (+ V3-08/09 spurs) | 02, 03, 07, 08, 09 |
-| Admin · restrict | V3-01r, V3-02d | 01 `#restrict`, 02 deny |
+| Admin · restrict | V3-01r, V3-02d | 01 `#restrict`, 02 dead-end |
 | Gallery | V3-06, V3-07 (+ V3-05 spur) | 06, 07, 05 |
-| Admin · approvals | V3-01a | 01 `#approvals` |
+| Admin · approvals | V3-02a, V3-03a, V3-01a | 02 submit · 03 pending · 01 `#approvals` |
 
 *(ProtoChrome + VersionSwitcher on all; RoleSwitcher on product screens via injection.)*
 
@@ -326,8 +326,12 @@ ProtoState.setProtoVersion('v3', { reload: false })
 ProtoState.DEMO_PATH // getter → DEMO_PATH_V2 or DEMO_PATH_V3
 ProtoState.setRole('member')
 ProtoState.setLibraryEnabled(true) // V2 default true; V3 default false
-ProtoState.setMarkPolicy('any_builder'|'admin_only'|'custom_role') // V3 chunk 2
+ProtoState.setMarkPolicy('any_builder'|'admin_only'|'custom_role') // V3
 ProtoState.canMarkCompanyLevel(roleId?) // gates Save as building block
+ProtoState.isMarkRestrictedDeadEnd() // admin_only — no submit path
+ProtoState.isMarkApprovalMode() // custom_role — submit → pending
+ProtoState.ensureRestrictedDeadEndPolicy() // pin admin_only (chunk 2)
+ProtoState.ensureApprovalMarkPolicy() // pin custom_role + grant (chunk 4)
 ProtoState.setCustomMarkIncludesBuilders(true) // when markPolicy === custom_role
 ProtoState.templatesForRole('builder') // V2 role-filtered library
 ProtoState.beginBlockReview('capability', 'cap-slack') // V2 → 00b
